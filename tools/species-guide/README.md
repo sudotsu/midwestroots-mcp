@@ -1,8 +1,9 @@
 # Species Matching Capability
 
 **Implementation order:** 1 of 5  
-**Status:** Planning/specification  
-**Source implementation:** `sudotsu/omahatreecare`
+**Status:** Approved Phase 1 specification; canonical foundation prerequisite pending
+
+**Canonical source:** `sudotsu/omahatreecare`
 
 ## Objective
 
@@ -17,6 +18,8 @@ The homeowner should be able to begin naturally:
 - or arrive here from Problem Navigator because species is unknown.
 
 The system should reuse whatever evidence is already available, run the deterministic matcher, explain the evidence honestly, and request the highest-value missing observation when refinement is useful.
+
+The required interaction and final field-entry experience are defined in `docs/SPECIES-UX-BLUEPRINT.md` under the shared product principles in `docs/UI-DESIGN-THESIS.md`.
 
 ## Source behavior to preserve
 
@@ -49,6 +52,8 @@ The deterministic matcher:
 
 Those behaviors are part of the product contract.
 
+Domain logic, source-backed content, utility policy, trait vocabulary, and Species illustrations remain canonical in `sudotsu/omahatreecare`. This repository consumes a reviewed snapshot through reproducible, versioned vendoring. The vendor record must identify the upstream commit and paths, and the import/verification process must detect drift rather than rely on informal copying.
+
 ## Model boundary
 
 ### ChatGPT may
@@ -72,9 +77,9 @@ Those behaviors are part of the product contract.
 - hide a tie or contradiction to make the answer feel cleaner;
 - infer diagnosis, treatment, structural safety, or necessary tree work from species identity.
 
-## Proposed internal tool contract
+## Approved Phase 1 tool surface
 
-The exact MCP schema remains an implementation decision, but the semantic contract should be stable before code is written.
+The exact transport syntax remains an implementation decision. Phase 1 exposes exactly `match_species`, `get_species_profile`, and `render_species_guide`.
 
 ### `match_species`
 
@@ -126,6 +131,18 @@ At minimum:
 Only source-backed profile material approved for homeowner use, including relevant provenance/source references.
 
 The profile result should make it possible to explain distinguishing features without giving the model unrestricted authority to manufacture species facts.
+
+### `render_species_guide`
+
+#### Input
+
+Validated normalized Species observations and the canonical result reference/data needed to verify or recompute that result. Caller-supplied candidate IDs, order, scores, confidence, or rankings are never authoritative inputs.
+
+#### Output
+
+An illustrated interactive result for Species choices and candidates, including the appropriate matched/conflicting evidence, tie/ambiguity/no-match state, next useful observation, and profile navigation.
+
+The tool must use or recompute the canonical deterministic result before rendering. It must not display a caller's preferred candidate ranking. Choice and candidate illustrations come from the versioned canonical `omahatreecare` source.
 
 ## Conversational orchestration
 
@@ -187,7 +204,7 @@ The default homeowner result should answer four things clearly:
 3. **What evidence conflicts or remains uncertain?**
 4. **What would most help distinguish the remaining possibilities?**
 
-When useful, the in-chat app UI can render:
+The required Phase 1 in-chat UI renders:
 
 - a strongest-current-match card;
 - tied/alternative candidate cards;
@@ -199,6 +216,10 @@ When useful, the in-chat app UI can render:
 - a cross-tool continuation such as "Investigate the leaf problem" or "Screen the visible failure concern."
 
 The UI must not use visual confidence theater such as an unsupported `94% match` score.
+
+Illustrations must accurately distinguish the represented trait or species. Materially different seed and pod forms must not share misleading artwork. Illustration corrections are made in the canonical `omahatreecare` source and then vendored here.
+
+Each meaningful selection should visibly update the developing field sheet, candidates, supporting/conflicting evidence, or next observation. The final state should read as an authored field-guide/specimen entry. Text-only fallback must preserve the same result and reasoning.
 
 ## Tree Case writes
 
@@ -281,15 +302,18 @@ Evaluation should score both deterministic correctness and conversational behavi
 
 ## Definition of done
 
-Species is ready to become the first implementation slice when:
+Species Phase 1 is complete when:
 
-- the existing matcher/data needed by the capability has a clear extraction/reuse strategy from `omahatreecare`;
+- the canonical Species foundation PR in `omahatreecare` is reviewed and merged;
+- the matcher, data, trait vocabulary, and illustrations have a reproducible/versioned vendor process;
 - the Tree Case fields required by Species are finalized;
 - the MCP input/output schema is explicit and testable;
 - image-to-observation rules are explicit;
 - all major current web behaviors have contract tests;
 - the conversational eval set is written before implementation is considered complete;
-- the in-chat result UI is specified;
+- the illustrated in-chat choice and candidate UI is implemented and verified;
 - cross-tool handoffs are defined;
 - Omaha-only scope is visible to the user and enforced internally;
 - no generative shortcut can silently bypass the deterministic matching result.
+
+Species final content review remains a public-release gate. Midwest Roots/AJ owns practical and product approval, while authoritative factual claims remain source-backed.

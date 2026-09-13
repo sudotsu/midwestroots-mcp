@@ -1,7 +1,8 @@
 # ChatGPT Platform & Distribution Strategy
 
-**Reviewed:** 2026-09-11  
-**Status:** Planning decision support
+**Reviewed:** 2026-09-13
+
+**Status:** Approved distribution direction; platform details require pre-submission recheck
 
 ## Decision summary
 
@@ -43,14 +44,18 @@ The listing should make clear what the homeowner can accomplish rather than adve
 
 One ChatGPT app providing the chat-native experience and interactive result UI.
 
+The app follows the approved interactive-field-investigation thesis in `docs/UI-DESIGN-THESIS.md`. Species is the first/reference experience, while each later capability uses the distinct metaphor in `docs/CROSS-TOOL-UX-MAP.md` rather than cloning the Species layout.
+
 Responsibilities:
 
 - conversational orchestration;
-- Tree Case state/context;
+- conversation-carried Tree Case context for version 1;
 - selective follow-up questions;
-- interactive cards/results;
+- required illustrated Species choice cards and candidate results;
 - cross-capability navigation;
 - clear uncertainty and source presentation.
+
+Every meaningful input should produce meaningful visible feedback. All required interactions must retain clear keyboard, touch, color-independent, reduced-motion, and text/fallback behavior within the platform's supported surface.
 
 ### MCP layer
 
@@ -60,6 +65,7 @@ Initial conceptual surface:
 
 - `match_species`
 - `get_species_profile`
+- `render_species_guide`
 - `navigate_tree_problem`
 - `get_problem_guide`
 - `route_tree_task`
@@ -68,6 +74,8 @@ Initial conceptual surface:
 - `plan_removal_cost`
 
 These names are planning placeholders until schemas are finalized.
+
+The three Species names above are approved Phase 1 contracts rather than placeholders. `render_species_guide` must use or recompute the canonical deterministic result and must not accept caller-supplied candidate ordering as authoritative.
 
 There is no product reason to operate five separate MCP servers simply because there are five homeowner tools.
 
@@ -78,6 +86,27 @@ The initial homeowner capabilities are based on public/source-backed information
 Therefore, the preferred initial product posture is **no account connection unless a real feature later requires it**.
 
 Do not add authentication merely because the platform supports it. If persistence, saved cases, premium features, or account-specific actions are later approved, authentication can be reconsidered as a separate product decision.
+
+The version 1 Tree Case remains stateless and conversation-carried unless implementation evidence establishes a concrete need for persistence.
+
+## Hosting posture
+
+Production hosting is intentionally undecided. Keep the Node MCP implementation host-neutral and compare Vercel with Render only after the Species vertical slice has a working `/mcp` handler.
+
+The comparison must verify:
+
+- public HTTPS;
+- compatible Streamable HTTP behavior;
+- stateless Node deployment;
+- no sleeping production instance;
+- acceptable cold-start and request-duration behavior;
+- health checks and useful logs;
+- controlled releases and rollback;
+- a stable custom domain;
+- required origin validation;
+- UI Content Security Policy support.
+
+Hosting must not shape the Species architecture before that runnable comparison.
 
 ## Skills
 
@@ -117,3 +146,5 @@ Before submission, re-verify:
 - monetization rules if monetization is introduced.
 
 No 2026 platform assumption should be hardcoded permanently into product logic.
+
+Publication should ultimately use the Midwest Roots or other owner-controlled verified publisher identity.

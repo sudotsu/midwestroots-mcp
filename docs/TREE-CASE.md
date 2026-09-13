@@ -1,6 +1,7 @@
 # Shared Tree Case
 
-**Status:** Planning contract  
+**Status:** Approved version 1 contract
+
 **Purpose:** Define the shared case state that lets the homeowner capabilities cooperate without turning ChatGPT into the decision engine.
 
 ## Why this exists
@@ -73,6 +74,8 @@ Use categorical state rather than fake precision by default:
 
 A future capability may justify a numeric confidence measure, but a generic LLM confidence percentage is not part of the initial contract.
 
+Capability interfaces should make provenance and evidence status visible when they materially affect interpretation. “Not sure” and unknown are useful states, not failed answers.
+
 ## Field groups
 
 The Tree Case should be extensible, but the first version should cover the fields the five existing engines actually need.
@@ -131,6 +134,14 @@ Species identity must remain provisional unless the product later adds an approv
 
 Safety-critical image interpretation remains provisional unless the homeowner explicitly confirms the observation. The system may conservatively route an uncertain condition to review, but it must not describe an uncertain visual inference as a confirmed defect or emergency.
 
+Electrical routing follows the merged canonical website policy:
+
+- nearby or uncertain lines: pause work; Midwest Roots reviews;
+- apparent contact: stay clear; Midwest Roots reviews utility coordination;
+- downed wire, arcing, or fire: utility/emergency first.
+
+The homeowner is not asked to determine whether Midwest Roots must contact the utility. `sudotsu/omahatreecare`, including the cross-tool policy merged through PR #112, is canonical for this routing behavior.
+
 ### Work intent
 
 - homeowner's desired task;
@@ -180,6 +191,8 @@ Do not force the homeowner through every field in a website questionnaire when t
 
 When several useful questions remain, prefer the question with the highest expected decision value. Species matching already provides a concrete example through its `nextObservation` logic.
 
+When an answer changes deterministic state, the capability should show the meaningful effect within its approved visual metaphor. It should not reduce progress to arbitrary form completion.
+
 ## Tool interaction contract
 
 Each capability should declare:
@@ -198,11 +211,11 @@ The orchestration layer should pass the smallest relevant structured subset to e
 
 Version 1 should minimize retained personal information. The Tree Case is about the tree, visible site conditions, and the homeowner's task—not a general-purpose homeowner profile.
 
-Account/authentication and persistence beyond the active product experience are separate decisions and must not be assumed by this document.
+The version 1 Tree Case is conversation-carried and stateless: tools receive the relevant normalized case subset and return structured results for the conversation to carry forward. Do not add account storage, a database, Redis, or server-side sessions unless implementation evidence proves that conversation-carried state cannot meet the contract reliably. Any persistence proposal is a separate architecture decision.
 
 ## Definition of done for the Tree Case contract
 
-Before implementation begins, the contract is complete when:
+The contract remains satisfied when:
 
 - every existing tool input maps to a canonical Tree Case field or is explicitly tool-local;
 - provenance and uncertainty states are defined for all safety-relevant fields;

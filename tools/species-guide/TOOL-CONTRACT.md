@@ -1,9 +1,12 @@
 # Species Capability — Tool Contract
 
-**Status:** Pre-implementation contract  
+**Status:** Approved Phase 1 contract; canonical foundation prerequisite pending
+
 **Applies to:** First MCP implementation slice
 
 This document defines the data contract the implementation should satisfy. It is intentionally separate from transport/framework syntax so the semantic contract survives Apps SDK or MCP version changes.
+
+`sudotsu/omahatreecare` is canonical for Species domain logic, source-backed content, trait vocabulary, illustrations, and applicable utility policy. The implementation consumes a reproducibly vendored, versioned snapshot of that source.
 
 ## Release gate discovered during audit
 
@@ -53,6 +56,7 @@ All fields are optional individually. The engine must be able to return a starti
 - Leaf matching fields must be ignored when `season = leaf-off-or-unavailable`.
 - `visibleFailureSign` and `targetWithinReach` must never contribute to species ranking.
 - Invalid enum values must fail validation rather than being coerced to a nearby category.
+- `fruit=none-seen` is non-discriminating and must not count as positive match evidence.
 - The MCP adapter must not turn model free text directly into unvalidated matcher values.
 - Provenance/confidence remain in the Tree Case/orchestration layer; the pure matcher receives normalized values.
 
@@ -107,7 +111,10 @@ All fields are optional individually. The engine must be able to return a starti
 - `primaryCandidateId` is `null` for starting-universe and no-match.
 - A tied candidate must not be described as uniquely strongest by downstream UI/copy.
 - `nextObservation` must be selected by deterministic candidate differentiation logic, not a model preference.
+- `nextObservation` must actually separate remaining candidates and must be `null` when no unused observation can usefully separate them.
 - No-match must remain no-match; the adapter cannot promote the highest zero/weak candidate into a result.
+- Usable needles/scales evidence outside the supported dataset must preserve an outside-guide/no-match result.
+- Candidate source or display order must not be interpreted as confidence; a tied result remains tied even if a compatibility field names one candidate first.
 - `safetyHandoff` is routing information only. It must not modify candidate scores.
 - Dataset review metadata must be exposed to the application so stale/pending source status cannot be silently hidden from release checks.
 
@@ -193,6 +200,35 @@ Unknown IDs must fail closed. Do not fall back to an LLM-generated species profi
 
 ---
 
+# Tool 3 — `render_species_guide`
+
+## Purpose
+
+Return the required illustrated Phase 1 Species interface for observation choices, deterministic candidate results, evidence, ambiguity/no-match, and next actions.
+
+## Input
+
+The render request supplies validated normalized observations and, where used, an opaque result/dataset reference that the server can verify. It must not accept candidate IDs, candidate order, scores, confidence values, or rankings as authoritative display state.
+
+## Canonical-result rule
+
+Before rendering candidate state, the tool must use a server-held canonical deterministic result or recompute it from validated observations against the recorded dataset version. If supplied state disagrees with that result, the canonical result wins or the request fails closed.
+
+The UI must preserve:
+
+- ties without implying that the first candidate is more likely;
+- matched and conflicting evidence;
+- no-match/outside-guide results;
+- no further question when no useful candidate separation remains;
+- the canonical next useful observation when one exists;
+- the Omaha/local scope and identification limitations.
+
+Choice cards and candidate results must use the canonical Species illustrations and trait vocabulary vendored from `omahatreecare`.
+
+The rendered interaction must expose meaningful state changes after input, support keyboard and touch, preserve meaning without color, respect reduced-motion preferences, and provide a text/fallback representation of the same canonical result. Generated botanical imagery must not be presented as identification evidence.
+
+---
+
 # Orchestration contract around these tools
 
 The LLM/application layer is responsible for converting conversation and images into **candidate Tree Case evidence** before these deterministic calls.
@@ -215,6 +251,7 @@ The LLM/application layer is responsible for converting conversation and images 
 4. If the homeowner supplies new evidence, rerun the matcher; do not manually edit candidate rankings.
 5. If `safetyHandoff = true`, preserve the species result and separately route/suggest Hazard as appropriate.
 6. Use `get_species_profile` for detailed homeowner explanation instead of hallucinating profile facts.
+7. Use `render_species_guide` for the illustrated Phase 1 interaction; do not construct or reorder candidates outside the canonical result.
 
 ## Image extraction contract
 
@@ -243,6 +280,10 @@ Draft intent for `get_species_profile`:
 
 > Retrieve the approved source-backed Midwest Roots profile for a species/profile ID returned by the species matcher. Use this instead of inventing species facts or local relevance details.
 
+Draft intent for `render_species_guide`:
+
+> Render the illustrated Midwest Roots Species choices or canonical matcher result. Use validated observations or a server-verifiable result reference. Never accept caller-supplied candidate rankings as authoritative.
+
 Exact platform metadata syntax will be set during implementation against the current Apps SDK/MCP version.
 
 ---
@@ -263,4 +304,7 @@ At minimum:
 - unknown profile ID fails closed;
 - dataset review metadata is present;
 - pending final content review can be detected by release checks;
-- model-facing orchestration cannot bypass `match_species` for an in-scope species-identification request.
+- model-facing orchestration cannot bypass `match_species` for an in-scope species-identification request;
+- `render_species_guide` cannot be steered by caller-supplied candidate IDs, order, scores, confidence, or rankings;
+- rendered ties, contradictions, next-observation, and no-match states agree with the canonical deterministic result;
+- illustrated choices and candidate results use the versioned canonical assets and trait vocabulary.

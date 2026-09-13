@@ -39,7 +39,7 @@ Platform terminology and submission requirements are time-sensitive and must be 
 
 **Decision:** Omaha/Nebraska/utility-specific logic or pricing must remain properly scoped unless genuinely location-aware replacements are built.
 
-The initial product should prefer an explicit local scope over pretending local rules or Midwest Roots pricing are universal.
+The initial launch is explicitly Omaha/local. Local rules and Midwest Roots pricing must not be presented as universal.
 
 ## D-007 — FieldQuote is separate
 
@@ -52,6 +52,8 @@ The initial product should prefer an explicit local scope over pretending local 
 The Tree Case records values plus provenance/uncertainty. Conversation and images may populate evidence; deterministic capability engines remain responsible for the decisions they are designed to make.
 
 A capability must not force the homeowner to repeat a question that the current Tree Case already answers with sufficient evidence.
+
+For version 1, the Tree Case is conversation-carried and stateless. Do not add persistence unless implementation evidence shows that the active conversation cannot carry the required case reliably.
 
 See `docs/TREE-CASE.md`.
 
@@ -73,7 +75,7 @@ It is not a ranking of homeowner importance.
 
 **Decision:** Species is first because the existing deterministic matcher already supports ambiguity, contradictions, ties, leaf-off conditions, no-match outcomes, and `nextObservation` selection.
 
-The ChatGPT version should use those capabilities to ask the highest-value next observation rather than replay the website questionnaire step by step.
+The canonical Species foundation in `sudotsu/omahatreecare` must first correct the known matching, discrimination, contradiction, and illustration issues identified in planning. The ChatGPT version should then use those capabilities to ask the highest-value next observation rather than replay the website questionnaire step by step.
 
 The model may extract/normalize visible traits but may not bypass the matcher and simply declare a species.
 
@@ -96,7 +98,7 @@ The model may not silently replace deterministic species matching, problem routi
 
 ## D-012 — Hazard model baseline
 
-**Decision:** The homeowner MCP planning baseline is the five-part source-informed hazard model merged into `sudotsu/omahatreecare` through PR #108, not the obsolete numeric likelihood × consequence implementation.
+**Decision:** The homeowner MCP planning baseline is the five-part source-informed hazard model merged into `sudotsu/omahatreecare` through PR #108, with the cross-tool electrical-routing policy merged through PR #112. The merged website implementation is canonical.
 
 The current baseline separately models:
 
@@ -107,6 +109,12 @@ The current baseline separately models:
 - utility context;
 
 and returns Monitor / On-Site Review / Prompt Review / Keep Clear without presenting a fake professional risk score.
+
+The shared electrical-routing policy is:
+
+- nearby or uncertain lines: pause work; Midwest Roots reviews;
+- apparent contact: stay clear; Midwest Roots reviews utility coordination;
+- downed wire, arcing, or fire: utility/emergency first.
 
 ## D-013 — Initial authentication posture
 
@@ -119,3 +127,63 @@ The initial five capabilities operate on public/source-backed information and ac
 **Decision:** Do not build a parallel standalone Skill simply to duplicate the homeowner app.
 
 A Skill can be considered later if a concrete reusable workflow or workspace use case justifies it. The initial consumer experience is the Plugin/App backed by MCP capabilities.
+
+## D-015 — Canonical source and reproducible vendoring
+
+**Decision:** `sudotsu/omahatreecare` remains canonical for domain logic, source-backed content, utility policy, trait vocabulary, and Species illustrations.
+
+`sudotsu/midwestroots-mcp` will consume the approved source through reproducible, versioned vendoring. Each import must identify the upstream commit and source paths, use a repeatable import/verification process, and record any intentional deviations. Vendored files are not maintained as an informal independent copy; product changes begin in the canonical repository and arrive through a reviewed vendor update.
+
+## D-016 — Species Phase 1 surface and UI
+
+**Decision:** Species Phase 1 exposes exactly these homeowner capability tools:
+
+- `match_species`;
+- `get_species_profile`;
+- `render_species_guide`.
+
+`render_species_guide` must use or recompute the canonical deterministic match result. It must not trust candidate IDs, order, scores, or rankings supplied by a caller.
+
+Illustrated choice cards and illustrated candidate results are required Phase 1 behavior. The illustrations and trait vocabulary come from the canonical `omahatreecare` source.
+
+## D-017 — Production hosting remains undecided
+
+**Decision:** Keep the MCP implementation host-neutral. Compare Vercel and Render only after the Species vertical slice has a working `/mcp` handler.
+
+The hosting decision must evaluate public HTTPS, compatible Streamable HTTP behavior, stateless Node deployment, no sleeping production instance, acceptable cold-start and request-duration behavior, health checks, useful logs, controlled releases and rollback, a stable custom domain, required origin validation, and UI Content Security Policy support.
+
+## D-018 — Content approval, release gates, and publisher identity
+
+**Decision:** Midwest Roots/AJ owns practical and product approval. Authoritative factual claims remain source-backed.
+
+Species final content review remains a release gate. Refreshed local pricing approval remains a release gate before Cost launches. Publication should ultimately use the Midwest Roots or other owner-controlled verified publisher identity.
+
+## D-019 — Next implementation work
+
+**Decision:** After this planning-document reconciliation, the next implementation work is the narrowly scoped canonical Species foundation PR in `sudotsu/omahatreecare`.
+
+Do not begin the MCP foundation until that canonical Species PR is reviewed and merged.
+
+## D-020 — Shared UI philosophy and feedback
+
+**Decision:** The Midwest Roots experience is an interactive field investigation rather than an AI form. It should feel like discovery rather than data entry.
+
+Every meaningful input must create meaningful visible feedback. The reward is clearer understanding, visible progress, narrower possibilities, or revealed relationships rather than points, XP, streaks, badges, confetti, fake confidence percentages, or completion for its own sake.
+
+“Not sure” is a valid observation. The interface must make deterministic reasoning legible and must not imply that the model magically knows the answer.
+
+## D-021 — Species is the reference UX
+
+**Decision:** Species is the first/reference UX implementation. Its illustrated investigation, choice cards, candidate states, evidence annotations, and field-guide result are required Phase 1 behavior.
+
+`render_species_guide` must remain bound to the canonical deterministic result as defined in D-016. See `docs/SPECIES-UX-BLUEPRINT.md`.
+
+## D-022 — Capability-specific UX expressions
+
+**Decision:** All five capabilities share the Midwest Roots design philosophy and system, but each must reinterpret them through a metaphor and interaction pattern appropriate to its job. Other capabilities must not mechanically copy the Species UI.
+
+Generic AI/SaaS visual output, repeated form/card layouts, and an undifferentiated “write → next → result” pattern are not acceptable defaults. See `docs/UI-DESIGN-THESIS.md` and `docs/CROSS-TOOL-UX-MAP.md`.
+
+## D-023 — Hazard visual tone
+
+**Decision:** Hazard uses a restrained, safety-appropriate expression of the design system. Motion may clarify state or first-action changes, but Hazard must not celebrate, gamify, or make danger feel entertaining.

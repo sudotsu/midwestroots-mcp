@@ -2,7 +2,7 @@
 
 Homeowner tree-care tools delivered through ChatGPT/MCP and published by **Midwest Roots**.
 
-> **Status:** Planning first. No production implementation should begin until the planning documents identify the approved scope, tool contracts, safety boundaries, eval requirements, launch requirements, and explicit non-goals.
+> **Status:** The implementation plan and owner decisions are approved. Work proceeds as narrow, reviewable changes in the approved sequence.
 
 OmahaTreeCare.com is a domain and distribution surface. **Midwest Roots is the publisher/company identity; homeowners are the users.**
 
@@ -18,7 +18,7 @@ The current capabilities are:
 4. **DIY-or-Professional Navigator** — help determine whether a task is plausibly homeowner-manageable or should be routed to a professional.
 5. **Cost Planning Guide** — help homeowners understand the variables that drive likely professional tree-work cost without presenting generic averages as binding local quotes.
 
-The intended product is **one homeowner-facing MCP/app exposing multiple coordinated capabilities**, not five unrelated products unless planning research produces a strong reason to split them.
+The product is **one homeowner-facing MCP/app exposing multiple coordinated capabilities**, not five unrelated products.
 
 ## Important architecture distinction
 
@@ -38,6 +38,23 @@ ChatGPT/MCP is the interaction and distribution layer: it can gather conversatio
 - Keep the user-facing experience simple even when internal logic is thorough.
 - Prefer professional review over false certainty when remote evidence is insufficient.
 - Treat the website and ChatGPT product as separate surfaces that may share domain logic.
+- Make meaningful input produce meaningful visible feedback.
+- Make the experience feel like discovery rather than data entry.
+- Give each capability its own job-appropriate visual metaphor within one authored Midwest Roots system.
+
+## Canonical source and Phase 1
+
+`sudotsu/omahatreecare` remains canonical for domain logic, source-backed content, utility policy, trait vocabulary, and Species illustrations. This repository will consume approved snapshots through reproducible, versioned vendoring that records and verifies the upstream commit and source paths. Informal manual copying is not the source strategy.
+
+Species Phase 1 exposes `match_species`, `get_species_profile`, and `render_species_guide`. The render tool must use or recompute the canonical deterministic result rather than trust candidate rankings from its caller. Illustrated Species choice cards and candidate UI are required in Phase 1.
+
+The version 1 Tree Case is conversation-carried and stateless unless implementation proves persistence necessary. Launch scope is Omaha/local first.
+
+The merged website implementation is canonical for shared electrical routing:
+
+- nearby or uncertain lines: pause work; Midwest Roots reviews;
+- apparent contact: stay clear; Midwest Roots reviews utility coordination;
+- downed wire, arcing, or fire: utility/emergency first.
 
 ## Intended final repository structure
 
@@ -47,7 +64,7 @@ midwestroots-mcp/
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── LICENSE
-├── package.json / pyproject.toml       # final stack TBD
+├── package.json                        # TypeScript/Node.js
 ├── .env.example
 ├── .gitignore
 │
@@ -58,6 +75,9 @@ midwestroots-mcp/
 │   ├── NON-GOALS.md                    # scope boundaries
 │   ├── RESEARCH.md                     # platform + competitive research
 │   ├── CURRENT-TOOLS-AUDIT.md          # exact audit of the 5 existing web tools
+│   ├── UI-DESIGN-THESIS.md             # shared interaction and visual philosophy
+│   ├── SPECIES-UX-BLUEPRINT.md         # Phase 1 reference experience
+│   ├── CROSS-TOOL-UX-MAP.md            # distinct capability metaphors
 │   ├── GAP-ANALYSIS.md                 # keep/adapt/expand/redesign by capability
 │   ├── ORCHESTRATION.md                # when/how capabilities call one another
 │   ├── SAFETY-BOUNDARIES.md            # hazard, utility, diagnosis, uncertainty rules
@@ -91,9 +111,10 @@ midwestroots-mcp/
 │   │   └── tests/
 │   ├── species-guide/
 │   │   ├── README.md
+│   │   ├── SOURCE-MANIFEST.json
 │   │   ├── schema/
-│   │   ├── logic/
-│   │   ├── references/
+│   │   ├── vendor/
+│   │   ├── ui/
 │   │   └── tests/
 │   ├── diy-pro-navigator/
 │   │   ├── README.md
@@ -153,6 +174,8 @@ midwestroots-mcp/
 │   └── end-to-end/
 │
 ├── scripts/
+│   ├── vendor-species.*
+│   ├── verify-species-vendor.*
 │   ├── validate-tool-schemas.*
 │   ├── run-evals.*
 │   └── release-check.*
@@ -163,9 +186,9 @@ midwestroots-mcp/
     └── pull_request_template.md
 ```
 
-## Planning deliverables required before implementation
+## Approved planning baseline
 
-The planning phase is not finished until these are explicit:
+The planning documents record:
 
 - audit of the current five website tools;
 - capability-by-capability gap analysis;
@@ -201,7 +224,7 @@ The product should not be considered launch-ready merely because the MCP server 
 
 ### OmahaTreeCare.com
 
-The website is a Midwest Roots distribution/SEO surface. The existing website tools are the source product concepts, but the ChatGPT product may use different interaction patterns where conversation provides a better experience.
+The website is a Midwest Roots distribution/SEO surface. Its repository is the canonical source for the shared domain behavior and content listed above, while the ChatGPT product may use different interaction patterns where conversation provides a better experience.
 
 ### FieldQuote
 
@@ -215,10 +238,8 @@ Examples include MCP eval harnesses, submission validators, schema linting, gene
 
 ## Current priority
 
-1. Audit the five existing website tools directly.
-2. Perform current ChatGPT/MCP platform and distribution research.
-3. Complete capability gap analysis.
-4. Lock product packaging and architecture.
-5. Define evals and acceptance criteria.
-6. Approve the master plan.
-7. Only then begin implementation.
+The next implementation work is the canonical Species foundation PR in `sudotsu/omahatreecare`. Do not begin the MCP foundation until that PR is reviewed and merged.
+
+Production hosting remains undecided. Keep the MCP implementation host-neutral and compare Vercel with Render only after the Species vertical slice has a working `/mcp` handler, using the acceptance criteria in `docs/PLATFORM-DISTRIBUTION.md`.
+
+Species final content review and refreshed local Cost pricing approval remain release gates. Midwest Roots/AJ owns practical and product approval; authoritative factual claims remain source-backed. Publication should ultimately use the Midwest Roots or other owner-controlled verified publisher identity.

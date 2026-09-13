@@ -1,7 +1,9 @@
 # Midwest Roots MCP — Master Planning Document
 
-**Status:** Active planning  
-**Implementation authorization:** Not yet granted by this document  
+**Status:** Approved for phased implementation
+
+**Implementation authorization:** Granted only through the approved reviewable sequence
+
 **Product:** Homeowner tree-care tools delivered through ChatGPT/MCP  
 **Publisher:** Midwest Roots
 
@@ -9,7 +11,7 @@
 
 Convert the five existing homeowner tools into a high-quality ChatGPT/MCP product without assuming they need more underlying logic simply because they are moving into ChatGPT.
 
-The planning job is to determine, capability by capability, whether the current implementation should:
+The approved planning method determines, capability by capability, whether the current implementation should:
 
 - remain substantially unchanged;
 - be adapted to a structured MCP contract;
@@ -26,11 +28,11 @@ No expansion should happen merely to make the product feel more "AI" or more com
 4. **DIY-or-Professional Navigator**
 5. **Cost Planning Guide**
 
-These capabilities already exist on the Midwest Roots website surface at OmahaTreeCare.com. The current web implementations are the starting point and must be inspected directly before MCP behavior is finalized.
+These capabilities already exist on the Midwest Roots website surface at OmahaTreeCare.com. Their web implementations were inspected directly for the current audit and remain the canonical starting point for MCP behavior.
 
-## 3. Core product hypothesis
+## 3. Core product architecture
 
-The leading hypothesis is one homeowner-facing product exposing multiple internal tools rather than five unrelated products.
+The approved architecture is one homeowner-facing product exposing multiple internal tools rather than five unrelated products.
 
 A homeowner should be able to ask a natural question such as:
 
@@ -38,7 +40,7 @@ A homeowner should be able to ask a natural question such as:
 
 The product should determine which capability or sequence of capabilities is relevant, collect only materially necessary information, invoke deterministic tool logic, and return a clear result with uncertainty preserved.
 
-This packaging hypothesis is not final until current OpenAI distribution/discoverability requirements and competing products are reviewed.
+Platform terminology and submission requirements remain time-sensitive and must be reverified before publication, without reopening the settled product architecture by default.
 
 ## 4. Non-AI tool principle
 
@@ -93,21 +95,11 @@ The output must explicitly recommend **keep, adapt, expand, or redesign** for ea
 
 ### 5.3 Product packaging
 
-Decide whether the final distribution unit is:
-
-- five independently listed tools/products;
-- one Midwest Roots homeowner product exposing five named capabilities; or
-- one broader tree-care product where the five capabilities are internal tools selected automatically.
-
-Current working hypothesis: the third option is strongest, but this remains subject to platform/discovery research.
+The final distribution unit is one Midwest Roots homeowner product in which the five capabilities are internal tools selected or combined as the homeowner's case requires.
 
 ### 5.4 Location strategy
 
-The current tools contain Omaha/Nebraska/local-utility assumptions in places. Planning must decide where the product is:
-
-- explicitly Omaha/local;
-- usable more broadly with constrained behavior; or
-- expanded into genuinely location-aware guidance.
+The initial launch is explicitly Omaha/local. Broader coverage requires separately approved, genuinely location-aware rules and content.
 
 Local rules and pricing must never be silently generalized nationally.
 
@@ -128,8 +120,9 @@ Specific principles already established:
 - tree-problem guidance is not a definitive diagnosis;
 - species identification must preserve uncertainty;
 - species identity alone does not prove condition, hazard, or work need;
-- ordinary uncertainty near utilities should not be presented as a confirmed electrical emergency;
-- obvious downed wire, arcing, fire, or active electrical emergency conditions warrant immediate keep-away/emergency or utility guidance;
+- nearby or uncertain lines mean pause work while Midwest Roots reviews;
+- apparent contact means stay clear while Midwest Roots reviews utility coordination;
+- downed wire, arcing, or fire means utility/emergency first;
 - homeowners should not be pushed into making technical utility-clearance determinations they cannot reasonably make;
 - DIY guidance should not pretend a remote system can certify a task as universally safe.
 
@@ -163,9 +156,9 @@ Examples to evaluate:
 
 Orchestration must not manufacture dependencies where none are needed.
 
-### 5.8 Current platform research
+### 5.8 Current platform and hosting verification
 
-Before architecture is locked, verify current OpenAI requirements for:
+Before implementing platform-specific integration or submitting the product, verify current OpenAI requirements for:
 
 - Apps/Plugins/MCP packaging;
 - tool descriptions and schemas;
@@ -180,7 +173,15 @@ Before architecture is locked, verify current OpenAI requirements for:
 - analytics expectations;
 - safety requirements.
 
-### 5.9 Competitive research
+Production hosting is intentionally undecided. The implementation must remain host-neutral, and Vercel and Render will be compared only after the Species vertical slice has a working `/mcp` handler. The comparison must cover public HTTPS, compatible Streamable HTTP behavior, stateless Node deployment, no sleeping production instance, acceptable cold-start and request-duration behavior, health checks, useful logs, controlled releases and rollback, a stable custom domain, required origin validation, and UI Content Security Policy support.
+
+### 5.9 Canonical source and vendoring
+
+`sudotsu/omahatreecare` is canonical for domain logic, source-backed content, utility policy, trait vocabulary, and Species illustrations. This repository consumes approved source snapshots through a reproducible, versioned vendor process that records upstream commit and paths and verifies the imported result. Informal manual copying is not an approved source strategy.
+
+Midwest Roots/AJ owns practical and product approval. Authoritative factual claims remain source-backed. Species final content review and refreshed local Cost pricing approval are release gates for their respective capabilities.
+
+### 5.10 Competitive research
 
 Search the current ChatGPT/plugin/app ecosystem for:
 
@@ -193,7 +194,7 @@ Search the current ChatGPT/plugin/app ecosystem for:
 
 The goal is to understand packaging, discoverability, missing functionality, and review risk—not to copy feature counts.
 
-### 5.10 Evaluation
+### 5.11 Evaluation
 
 Each capability must receive its own eval set and launch threshold.
 
@@ -210,9 +211,21 @@ Required eval classes should include:
 - tool-routing failures;
 - regression cases from the website implementation.
 
-## 6. Definition of done for planning
+### 5.12 UI and interaction system
 
-Planning is complete only when the repository contains approved answers for:
+The approved product thesis is that Midwest Roots should feel like an interactive field investigation rather than an AI form. Every meaningful input should produce meaningful visible feedback, and the reward should be clarity and discovery rather than gamification.
+
+Species is the first/reference UX implementation, with illustrated interaction required in Phase 1. Each other capability must reinterpret the shared philosophy through its own job-appropriate metaphor rather than copy the Species UI. Hazard requires a restrained, safety-appropriate expression.
+
+The detailed product and capability contracts are in:
+
+- `docs/UI-DESIGN-THESIS.md`;
+- `docs/SPECIES-UX-BLUEPRINT.md`;
+- `docs/CROSS-TOOL-UX-MAP.md`.
+
+## 6. Approved planning baseline
+
+The approved planning baseline covers:
 
 - exact product packaging;
 - current-tool audit;
@@ -230,10 +243,13 @@ Planning is complete only when the repository contains approved answers for:
 - OpenAI submission requirements;
 - launch checklist;
 - explicit non-goals;
-- post-launch success metrics.
+- post-launch success metrics;
+- shared UI philosophy and capability-specific UX direction.
 
 ## 7. Implementation gate
 
-Implementation should begin only after the planning documents make the above decisions explicit enough that an implementation agent does not have to invent product behavior while coding.
+The next implementation work after this documentation reconciliation is the canonical Species foundation PR in `sudotsu/omahatreecare`. The MCP foundation must not begin until that PR is reviewed and merged.
 
 Once implementation begins, non-documentation repository changes must go through a branch and pull request for review. Passing CI does not authorize merging.
+
+Publication should ultimately use the Midwest Roots or other owner-controlled verified publisher identity.

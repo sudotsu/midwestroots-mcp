@@ -1,6 +1,7 @@
 # Species — Phase 1 Implementation Plan
 
-**Status:** Ready for review before code implementation  
+**Status:** Approved; canonical Species foundation PR is the implementation prerequisite
+
 **Capability:** Species Matching  
 **Goal:** Prove the MCP/app architecture with one deterministic homeowner capability before expanding to the other four.
 
@@ -26,11 +27,11 @@ Do not add an LLM SDK to the deterministic Species server merely to identify tre
 
 ### Deployment
 
-Deployment provider remains open until Streamable HTTP behavior, cold starts, logs, and public HTTPS endpoint requirements are validated against the chosen host.
+Production hosting is intentionally undecided. Keep the server host-neutral and compare Vercel with Render only after this vertical slice has a working `/mcp` handler.
 
-Do not select infrastructure merely because another Midwest Roots property happens to use it.
+The comparison must verify public HTTPS, compatible Streamable HTTP behavior, stateless Node deployment, no sleeping production instance, acceptable cold-start and request-duration behavior, health checks, useful logs, controlled releases and rollback, a stable custom domain, required origin validation, and UI Content Security Policy support. Hosting must not shape the Species architecture before that runnable comparison.
 
-## 2. Build tools before custom UI
+## 2. Build the deterministic tools and required UI as one vertical slice
 
 Follow the current OpenAI plugin guidance:
 
@@ -38,9 +39,11 @@ Follow the current OpenAI plugin guidance:
 2. inspect them with MCP Inspector;
 3. connect them to ChatGPT in developer mode;
 4. run direct/indirect/edge/out-of-scope evals;
-5. only then add custom in-chat UI where it materially improves the experience.
+5. implement and verify the illustrated in-chat UI against those tool results.
 
-For Species, custom UI is likely worthwhile eventually for candidate comparisons, matched/conflicting evidence, and next-observation prompts. It is not required to prove the engine/tool behavior first.
+Tool behavior should be established before wiring the UI to it, but Phase 1 is not complete without illustrated choice cards and illustrated candidate results. The UI must preserve matched/conflicting evidence, ties, ambiguity, no-match, and next-observation behavior.
+
+`docs/SPECIES-UX-BLUEPRINT.md` defines the required reference experience: the homeowner's tree/photo anchors an evolving field sheet, evidence provenance remains visible, selections create understandable candidate/evidence changes, and the final state reads as an authored field-guide entry. `docs/UI-DESIGN-THESIS.md` supplies the product-level design and fallback rules.
 
 ## 3. Source reuse strategy
 
@@ -50,9 +53,9 @@ The deterministic Species engine currently lives in `sudotsu/omahatreecare`, whi
 
 Runtime imports across repositories would create brittle deployment coupling. Creating a third shared-domain repository/package immediately would add infrastructure before we know it is necessary.
 
-### Phase 1 decision
+### Approved Phase 1 decision
 
-Copy the minimum **pure domain modules/data** needed by Species into `midwestroots-mcp` and record the exact source repository commit used.
+Vendor the minimum approved Species domain modules, source-backed content, trait vocabulary, illustrations, and behavioral fixtures from `sudotsu/omahatreecare` through a reproducible, versioned import process.
 
 Initial source set is expected to include the relevant portions of:
 
@@ -60,22 +63,23 @@ Initial source set is expected to include the relevant portions of:
 - `src/data/tree-species-matching.ts`
 - any required species question/label data
 - matching tests that define current behavior
+- the Species illustrations required by the Phase 1 UI
 
-Do not copy React/web UI into the MCP engine.
+`sudotsu/omahatreecare` remains canonical for domain logic, source-backed content, utility policy, trait vocabulary, and Species illustrations. Do not maintain an informal independent copy in this repository. Shared behavior/content changes start upstream and arrive through a reviewed vendor update.
 
 ### Drift control
 
-The copied engine must include a provenance record containing:
+Each vendor update must include a machine-readable manifest or equivalent provenance record containing:
 
 - source repository;
 - source commit SHA;
 - copied source paths;
-- copy date;
+- import date;
 - intentional deviations, if any.
 
-Parity tests should prove that the copied matcher behaves like the source version for the same fixtures.
+The repository must provide repeatable import and verification commands. Verification should detect drift from the recorded upstream version and prove that the vendored matcher behaves like the canonical source for the same fixtures.
 
-Do not build an automated cross-repo synchronization system in Phase 1. If maintaining both implementations becomes painful in real use, then evaluate extracting a shared package. Demonstrate the need first.
+Vendoring is a controlled, reviewed source update; it must not automatically deploy arbitrary upstream changes. If maintaining the vendor boundary becomes materially costly, a shared package can be evaluated later from evidence.
 
 ## 4. Proposed repository slice
 
@@ -91,18 +95,23 @@ midwestroots-mcp/
 │   └── species-guide/
 │       ├── README.md
 │       ├── TOOL-CONTRACT.md
-│       ├── SOURCE-PROVENANCE.md
+│       ├── SOURCE-MANIFEST.json
 │       ├── schema/
-│       ├── logic/
-│       ├── data/
+│       ├── vendor/
+│       ├── ui/
 │       └── tests/
+│
+├── scripts/
+│   ├── vendor-species.*
+│   └── verify-species-vendor.*
 │
 ├── server/
 │   └── mcp/
 │       ├── server.ts
 │       └── tools/
 │           ├── match-species.ts
-│           └── get-species-profile.ts
+│           ├── get-species-profile.ts
+│           └── render-species-guide.ts
 │
 └── evals/
     └── species-guide/
@@ -124,7 +133,7 @@ If later testing shows that conversation-carried state is unreliable or too larg
 
 ## 6. Phase 1 MCP tools
 
-Implement exactly two Species tools first:
+Implement exactly three Species tools in Phase 1:
 
 ### `match_species`
 
@@ -144,11 +153,19 @@ Implement exactly two Species tools first:
 - source-backed profile output;
 - no generative fallback.
 
+### `render_species_guide`
+
+- read-only illustrated Species UI resource/result;
+- renders choice cards, candidate results, evidence, ambiguity/no-match, and next-observation state;
+- uses or recomputes the canonical deterministic result from normalized observations and the recorded dataset version;
+- never trusts caller-supplied candidate IDs, ordering, scores, confidence, or rankings;
+- uses the canonical trait vocabulary and Species illustrations vendored from `omahatreecare`.
+
 Do not add generic catch-all tools such as `analyze_tree` in Phase 1.
 
 ## 7. MCP metadata
 
-Both tools should declare accurate metadata including:
+All three tools should declare accurate metadata including:
 
 - action-oriented stable names;
 - human-readable titles;
@@ -166,6 +183,8 @@ The server should have concise shared instructions reinforcing that the Species 
 Use `structuredContent` for compact, machine-usable deterministic results.
 
 Human-readable `content` may summarize the outcome, but it must not contain a different conclusion from `structuredContent`.
+
+The render result must be bound to the same canonical deterministic outcome. A caller cannot change the display outcome by supplying a preferred candidate list or ordering.
 
 Do not hide information the model needs for reasoning only in `_meta`. `_meta` is reserved for client/UI-only details when needed later.
 
@@ -194,6 +213,8 @@ Before public release:
 - change the source review state deliberately rather than through implementation side effects;
 - rerun matcher/profile tests after the approved content snapshot is imported.
 
+Midwest Roots/AJ owns practical and product approval. Authoritative factual claims remain source-backed.
+
 This gate does not block building the MCP adapter against the current dataset.
 
 ## 11. Minimal implementation validation
@@ -207,6 +228,11 @@ Avoid a huge test blast. Phase 1 validation should be proportional and purposefu
 - output serialization;
 - profile lookup failure behavior;
 - source review metadata propagation.
+- reproducible vendor import/drift verification;
+- render rejection or disregard of caller-supplied candidate rankings;
+- illustrated card/result states use the canonical vocabulary, assets, and deterministic result.
+- keyboard, touch, color-independent, reduced-motion, and text/fallback behavior;
+- meaningful visible feedback after every input that changes canonical state.
 
 ### MCP Inspector
 
@@ -229,6 +255,7 @@ Test a focused set of conversational cases:
 - user correction;
 - safety-handoff context;
 - adversarial request to "just tell me what it is" without using the matcher.
+- illustrated choice and candidate states, including ties, contradiction, and no-match.
 
 Do not run unrelated full-repository/browser suites repeatedly during every edit. Define the gate and run what the change actually requires.
 
@@ -239,6 +266,7 @@ Phase 1 is complete when:
 - TypeScript MCP server starts through Streamable HTTP;
 - `match_species` matches the approved deterministic engine;
 - `get_species_profile` returns only approved profile data;
+- `render_species_guide` renders the canonical deterministic result and cannot be steered by caller rankings;
 - schemas reject unsupported input;
 - tool annotations are accurate;
 - MCP Inspector passes representative/invalid calls;
@@ -246,6 +274,9 @@ Phase 1 is complete when:
 - the model does not replay the entire website questionnaire when evidence is already available;
 - ambiguity, ties, contradictions, and no-match survive end to end;
 - `nextObservation` drives targeted follow-up;
+- illustrated choice cards and candidate UI work end to end;
+- the completed experience meets `docs/SPECIES-UX-BLUEPRINT.md` rather than presenting a generic form or chatbot result;
+- the vendored source can be reproduced and verified against its recorded `omahatreecare` commit;
 - Tree Case evidence can continue into the next capability later;
 - implementation is delivered through a branch and PR for review.
 
@@ -261,6 +292,9 @@ Phase 1 is complete when:
 - billing;
 - production Plugin submission;
 - broad analytics stack;
-- automatic synchronization back into OmahaTreeCare.com;
+- unreviewed automatic upstream pulls or deployment;
 - a generic AI tree-identification model;
-- custom UI before the tools themselves work end to end.
+
+## 14. Implementation prerequisite
+
+The next implementation work is the canonical Species foundation PR in `sudotsu/omahatreecare`, covering the matching, discrimination, contradiction/recheck, tie, no-match, and misleading-illustration issues identified during planning. Do not begin the MCP foundation until that PR is reviewed and merged; the first vendor snapshot must come from that approved canonical state.

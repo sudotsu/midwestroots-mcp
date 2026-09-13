@@ -2,8 +2,9 @@
 
 **Source product:** OmahaTreeCare.com / Midwest Roots  
 **Source repository:** `sudotsu/omahatreecare`  
-**Audit date:** 2026-09-11  
-**Status:** Active planning document
+**Audit date:** 2026-09-11; decisions reconciled 2026-09-13
+
+**Status:** Approved audit baseline
 
 ## Purpose
 
@@ -29,6 +30,10 @@ This audit treats the existing tools as working products with logic worth preser
 | Cost Planner | Local deterministic planning ranges plus site-review routes | Useful, but pricing/source freshness must be reviewed | **Adapt after data refresh** |
 
 The initial implementation sequence is Species → Problem Navigator → DIY/Professional → Hazard → Cost. This sequence is about proving the architecture with increasing cross-tool and safety complexity, not ranking the tools by consumer importance.
+
+`sudotsu/omahatreecare` remains canonical for the engines, source-backed content, utility policy, trait vocabulary, and Species illustrations. Approved source snapshots enter this repository through reproducible, versioned vendoring rather than informal copying.
+
+The shared UX philosophy is an interactive field investigation with meaningful visible feedback, not a repeated AI form. Species is the reference experience; Problem, DIY/Professional, Hazard, and Cost use the distinct capability metaphors defined in `docs/CROSS-TOOL-UX-MAP.md`.
 
 ---
 
@@ -70,7 +75,7 @@ The flow also records two safety-context fields:
 
 Those safety fields do not alter the species match itself.
 
-## Existing strengths that must survive the port
+## Intended behavior and canonical foundation work
 
 ### Uncertainty is first-class
 
@@ -86,11 +91,20 @@ When two candidates score equally, the first display position is not represented
 
 ### No-match is valid
 
-If none of the ten species matches selected observations, the engine says so instead of forcing a winner.
+The canonical foundation must preserve a clear outside-guide/no-match result whenever usable evidence excludes the supported ten-tree universe, including usable needles/scales evidence.
 
-### Next observation is selected intentionally
+### Next observation must discriminate among remaining candidates
 
-The matcher examines unused trait categories and chooses the observation with the most variety among remaining candidates. This is exactly the behavior we want to exploit conversationally: ask for the next observation that is most likely to distinguish the current candidates.
+The current variety heuristic is not sufficient. The canonical foundation must calculate actual separation among the remaining candidates and stop asking when no unused observation can usefully separate them. This result is what the conversational layer must use.
+
+### Known canonical fixes before MCP implementation
+
+The next implementation PR in `sudotsu/omahatreecare` must also:
+
+- treat `fruit=none-seen` as non-discriminating rather than positive match evidence;
+- preserve ties without treating source/display order as confidence;
+- improve contradiction and targeted recheck behavior where required;
+- correct materially misleading trait illustrations, especially distinct seed and pod forms.
 
 ### Species identity is bounded
 
@@ -124,9 +138,9 @@ Example follow-up:
 
 That is materially better than translating `Step 2 of 10` into chat.
 
-## Initial internal tool surface
+## Approved Phase 1 tool surface
 
-Planning hypothesis:
+Species Phase 1 exposes exactly three tools:
 
 ### `match_species`
 
@@ -159,7 +173,11 @@ Returns:
 - approved source/provenance information;
 - explicit limitations.
 
-The first implementation should not give the model a generic `identify_any_tree` tool that bypasses the approved Omaha dataset.
+### `render_species_guide`
+
+Renders the required illustrated choice and candidate UI. It must use or recompute the canonical deterministic match result and must never trust candidate rankings supplied by its caller.
+
+The first implementation should not give the model a generic `identify_any_tree` tool that bypasses the approved Omaha dataset. Illustrated Species choice cards and candidate results are required in Phase 1.
 
 ## Species capability acceptance scenarios
 
@@ -241,7 +259,7 @@ The main conversational gain is selective intake: infer the homeowner's task/met
 
 # 4. Hazard Screening
 
-## Current engine after merged PR #108
+## Current engine after merged PRs #108 and #112
 
 The old likelihood × consequence numeric score is no longer the planned/current model.
 
@@ -271,6 +289,12 @@ It derives:
 - Downed line/arcing/fire changes the first action to OPPD/911 where appropriate but does not invent a fifth 'worse red' severity.
 - The result is a homeowner screening priority, not an ISA TRAQ rating or remote structural inspection.
 
+The final shared electrical-routing policy is canonical in the merged website implementation:
+
+- nearby or uncertain lines: pause work; Midwest Roots reviews;
+- apparent contact: stay clear; Midwest Roots reviews utility coordination;
+- downed wire, arcing, or fire: utility/emergency first.
+
 ## Initial classification
 
 **Adapt.**
@@ -295,9 +319,11 @@ It deliberately refuses to manufacture detailed dollar adjustments for factors t
 
 ## Known planning issue
 
-The current local pricing material is versioned to older Midwest Roots/Omaha pricing data. Before public ChatGPT distribution, the pricing dataset, dates, assumptions, and source language need an explicit freshness review.
+The current local pricing material is versioned to older Midwest Roots/Omaha pricing data. Refreshed local pricing and its approval remain a release gate before Cost launches.
 
 The local dataset must never become a generic national tree-removal average through model paraphrase.
+
+Midwest Roots/AJ owns practical and product approval; authoritative factual claims remain source-backed.
 
 ## Initial classification
 
@@ -308,3 +334,5 @@ The local dataset must never become a generic national tree-removal average thro
 # Cross-tool finding
 
 The existing tools already contain meaningful decision logic. The main product opportunity is not adding arbitrary questions or generative complexity. It is making the existing logic cooperate through a shared Tree Case, allowing natural conversation/images to populate structured evidence, and asking only the next question that has real decision value.
+
+The interface should make those state changes legible: candidates, categories, routes, hazard drivers, or cost factors should visibly respond to meaningful input without fake confidence or artificial gamification.
