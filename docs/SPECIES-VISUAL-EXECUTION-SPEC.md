@@ -368,14 +368,9 @@ Needs confirmation
 Not visible<br>
 No penalty
 
-Possible evidence states:
+Show evidence origin/provenance separately from evidence state. Origins include user-stated and image-observed evidence. States include observed, provisional, confirmed-by-user, conflicted, unknown, and skipped/unavailable.
 
-- user confirmed;
-- image observed;
-- provisional;
-- conflicted;
-- unknown;
-- skipped/unavailable.
+Homeowner confirmation may change an image-derived observation to `confirmed-by-user`, but it must retain its image origin/reference. Confirmation records the homeowner's report, not professional verification. A homeowner correction creates user-stated evidence that supersedes the prior extraction while keeping the history traceable.
 
 The user should understand which facts are solid and which are tentative.
 
@@ -565,6 +560,15 @@ Keep useful observations in the Tree Case.
 
 When the guide has gone as far as it responsibly can, the investigation resolves into a coherent field record.
 
+The record supports four result modes without adding another numbered screen state:
+
+- **Best current match**;
+- **Current tie**;
+- **Outside this guide** for an explicit outside-supported-universe result;
+- **No match among these trees** for ordinary no-match within the bounded guide.
+
+Ordinary no-match displays no candidate and explains that the current observations do not support any profile in the bounded guide. It preserves evidence, conflicts, unknowns, and provenance and remains reviewable/recomputable. If canonical logic provides a useful contradiction recheck, use that first. Do not collapse ordinary no-match into the outside-supported-universe result.
+
 Possible structure:
 
 ## Homeowner tree
@@ -612,6 +616,8 @@ Use homeowner language:
 - **What might removal cost?** → Cost
 
 The existing Tree Case should carry forward.
+
+All carried Species evidence and results remain scoped to the current `activeTreeId`. A newly introduced or adjacent tree requires its own switched or created tree context.
 
 Do not restart intake unnecessarily.
 

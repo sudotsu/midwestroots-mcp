@@ -51,6 +51,10 @@ The initial launch is explicitly Omaha/local. Local rules and Midwest Roots pric
 
 The Tree Case records values plus provenance/uncertainty. Conversation and images may populate evidence; deterministic capability engines remain responsible for the decisions they are designed to make.
 
+Evidence origin/provenance and evidence state remain separate. Confirming an image-derived observation changes its state without erasing its image origin/reference; a homeowner correction creates user-stated evidence that supersedes the extraction while preserving history.
+
+Every observation and result is scoped to the current `activeTreeId`. Evidence from another tree requires a switched or newly created tree context and must never merge silently into the active tree.
+
 A capability must not force the homeowner to repeat a question that the current Tree Case already answers with sufficient evidence.
 
 For version 1, the Tree Case is conversation-carried and stateless. Do not add persistence unless implementation evidence shows that the active conversation cannot carry the required case reliably.
@@ -75,7 +79,7 @@ It is not a ranking of homeowner importance.
 
 **Decision:** Species is first because the existing deterministic matcher already supports ambiguity, contradictions, ties, leaf-off conditions, no-match outcomes, and `nextObservation` selection.
 
-The canonical Species foundation in `sudotsu/omahatreecare` must first correct the known matching, discrimination, contradiction, and illustration issues identified in planning. The ChatGPT version should then use those capabilities to ask the highest-value next observation rather than replay the website questionnaire step by step.
+The canonical Species foundation corrections were merged into `sudotsu/omahatreecare` through PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). The ChatGPT version must use that corrected behavior to ask the highest-value next observation rather than replay the website questionnaire step by step.
 
 The model may extract/normalize visible traits but may not bypass the matcher and simply declare a species.
 
@@ -116,6 +120,8 @@ The shared electrical-routing policy is:
 - apparent contact: stay clear; Midwest Roots reviews utility coordination;
 - downed wire, arcing, or fire: utility/emergency first.
 
+The shared safety route may interrupt any capability state while preserving the current `activeTreeId`, case state, and collected evidence. It shows the canonical first action and resumes the prior capability only when appropriate. Capability logic must not invent hazard severity or use safety observations to alter unrelated deterministic results, including Species candidate ranking.
+
 ## D-013 — Initial authentication posture
 
 **Decision:** Do not require a homeowner account merely because the platform supports authentication.
@@ -146,6 +152,8 @@ A Skill can be considered later if a concrete reusable workflow or workspace use
 
 Illustrated choice cards and illustrated candidate results are required Phase 1 behavior. The illustrations and trait vocabulary come from the canonical `omahatreecare` source.
 
+Ordinary no-match must display no candidate and remain distinct from an explicit outside-supported-universe result. Both outcomes preserve collected evidence and allow review/correction.
+
 ## D-017 — Production hosting remains undecided
 
 **Decision:** Keep the MCP implementation host-neutral. Compare Vercel and Render only after the Species vertical slice has a working `/mcp` handler.
@@ -158,11 +166,11 @@ The hosting decision must evaluate public HTTPS, compatible Streamable HTTP beha
 
 Species final content review remains a release gate. Refreshed local pricing approval remains a release gate before Cost launches. Publication should ultimately use the Midwest Roots or other owner-controlled verified publisher identity.
 
-## D-019 — Next implementation work
+## D-019 — Canonical Species foundation status
 
-**Decision:** After this planning-document reconciliation, the next implementation work is the narrowly scoped canonical Species foundation PR in `sudotsu/omahatreecare`.
+**Decision:** The canonical Species foundation prerequisite was completed and merged through `sudotsu/omahatreecare` PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`).
 
-Do not begin the MCP foundation until that canonical Species PR is reviewed and merged.
+The next approved implementation work is the Species MCP foundation and reproducible vendor snapshot from that merged canonical state.
 
 ## D-020 — Shared UI philosophy and feedback
 

@@ -252,7 +252,7 @@ The approved planning baseline covers:
 
 ## 7. Implementation gate
 
-The next implementation work after this documentation reconciliation is the canonical Species foundation PR in `sudotsu/omahatreecare`. The MCP foundation must not begin until that PR is reviewed and merged.
+The canonical Species foundation prerequisite was completed in `sudotsu/omahatreecare` PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). The next approved implementation work is the Species MCP foundation and reproducible vendor snapshot from that merged canonical state.
 
 Once implementation begins, non-documentation repository changes must go through a branch and pull request for review. Passing CI does not authorize merging.
 

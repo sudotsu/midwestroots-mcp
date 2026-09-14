@@ -35,6 +35,7 @@ The UI must preserve these truths in every state:
 - Candidate order does not imply probability.
 - A strongest current match is provisional and is not a confirmed identification.
 - Ties remain ties.
+- Ordinary no-match remains distinct from an outside-supported-universe result; neither outcome invents a candidate.
 - Conflicts remain visible.
 - Image-derived observations show their provenance and may remain provisional.
 - Unknown, skipped, unavailable, and not observable are valid evidence states.
@@ -109,6 +110,20 @@ The following elements persist whenever their underlying information remains rel
 
 Persistence does not require every element to remain fully expanded. A prior comparison may condense into an evidence annotation. A candidate may gain detail as the field narrows. Important evidence must never vanish merely to simplify the layout.
 
+### Active-tree boundary
+
+Every visible Species observation, image, annotation, candidate result, and completed record belongs to the current Tree Case `activeTreeId`. Evidence from an adjacent or newly introduced tree must never merge silently into the active tree. When the homeowner changes which tree they are discussing, the orchestration layer must switch to or create the appropriate tree context before accepting new Species evidence.
+
+### Global shared-safety interruption
+
+The shared safety route has precedence and may interrupt any Species state without becoming another numbered Species screen. The interruption preserves the current Species investigation, its `activeTreeId`, all collected Species evidence, and the surrounding Tree Case. It shows the first action from the canonical shared utility/safety policy:
+
+- nearby or uncertain lines: pause work; Midwest Roots reviews;
+- apparent contact: stay clear; Midwest Roots reviews utility coordination;
+- downed wire, arcing, or fire: utility/emergency first.
+
+Species must not ask the homeowner to collect an observation through unsafe approach, climbing, entering a fall zone, or approaching utility lines. Species matching does not invent or modify hazard severity, and safety observations do not affect Species candidate ranking. Resume the preserved Species investigation only when appropriate after the shared safety route.
+
 ## State transition sequence
 
 ```text
@@ -127,9 +142,11 @@ Any evidence update
    ├── conflicting evidence ──> Contradiction / recheck
    ├── equally supported set ──> Equal tie
    ├── outside candidate set ──> Outside supported guide
+   ├── ordinary no-match + useful recheck ──> Contradiction / recheck
+   ├── ordinary no-match + no useful recheck ──> Completed Species field record
    └── one strongest survivor ─> Strongest current match
 
-Strongest match / tie / responsible stop
+Strongest match / tie / outside guide / ordinary no-match / responsible stop
    └── Completed Species field record ──> Cross-tool handoff
 ```
 
@@ -292,13 +309,13 @@ The first canonical candidate result may appear in a compact rail only after usa
 
 - Photo and source marker.
 - All proposed observations.
-- Existing user-confirmed evidence.
+- Existing evidence confirmed by the homeowner, with its original origin/reference retained.
 - Candidate universe before and after the canonical match.
 
 ### State changes
 
-- Confirming a proposed clue changes its provenance state to user-confirmed and reruns the matcher.
-- Correcting a clue replaces its value while preserving that a correction occurred in the Tree Case.
+- Confirming a proposed image clue retains its historical `image_observed` origin/reference, changes its evidence state to `confirmed-by-user`, and reruns the matcher. Confirmation means the homeowner confirmed their observation or report; it is not professional verification of the botanical fact.
+- Correcting a proposed clue creates `user_stated` evidence that supersedes the earlier image extraction for current matching while preserving the prior extraction and correction history in the Tree Case.
 - Rejecting a proposed clue removes it from usable match evidence but keeps the unresolved trait available if it remains decision-relevant.
 - `I can't tell` records an unknown or unavailable state and lets the matcher choose around it.
 
@@ -315,6 +332,7 @@ The first canonical candidate result may appear in a compact rail only after usa
 - `Photo suggests this`
 - `Needs confirmation`
 - `Confirm`
+- `Confirmed by you`
 - `Change this`
 - `I can't tell`
 - `Not visible · No penalty`
@@ -329,7 +347,7 @@ Annotations appear together in reading order. A text status reports how many usa
 
 ### Guardrails
 
-- Image observations cannot silently become user-confirmed.
+- Image-derived evidence cannot silently become `confirmed-by-user`, and homeowner confirmation must not erase its `image_observed` origin/reference.
 - Color cannot distinguish confirmed from provisional by itself.
 - Do not render evidence as an undifferentiated chip cloud.
 - Do not run the matcher on display labels that have not been normalized and validated.
@@ -880,7 +898,7 @@ Expand the candidate by replacing the compact row with the detailed plate in pla
 
 ### Entry condition
 
-The guide has gone as far as it responsibly can because a strongest match exists, a tie remains, the tree is outside the guide, or no additional observation will materially improve separation.
+The guide has gone as far as it responsibly can in one of four result modes: a strongest match exists, a tie remains, the tree is outside the supported universe, or the current observations produce an ordinary no-match among the profiles in the bounded guide. State 13 also applies when no additional observation will materially improve separation.
 
 ### Layout anatomy
 
@@ -889,7 +907,7 @@ The working investigation resolves into a coherent field record. The record pres
 Required order:
 
 1. `Homeowner tree` with photo or intentional no-photo state.
-2. `Best current match`, `Current tie`, or `Outside this guide`.
+2. `Best current match`, `Current tie`, `Outside this guide`, or `No match among these trees`.
 3. Explicit provisional or bounded status.
 4. `Evidence` grouped into `Supports`, `Unknown`, and `Conflicts` as applicable.
 5. `Why it remains` for every displayed candidate.
@@ -897,17 +915,31 @@ Required order:
 7. `Source/profile` access with dataset or review provenance where available.
 8. `What do you want to figure out next?` and contextual handoffs.
 
+#### Ordinary no-match mode
+
+For an ordinary no-match, the candidate area becomes an honest bounded result rather than displaying a fallback candidate:
+
+```text
+NO MATCH AMONG THESE TREES
+
+The current observations do not support any profile in this 10-tree guide.
+
+Review an observation
+```
+
+Use the actual approved dataset count if it changes. Preserve all evidence, conflicts, unknowns, and provenance. If canonical logic provides a useful contradiction/recheck before stopping, use State 9 first. Otherwise complete into State 13. This mode is distinct from State 11: use `Outside this guide` only when the canonical result explicitly indicates that the observation falls outside the supported universe.
+
 ### Persistent elements
 
 - Homeowner photo and all useful evidence.
-- Candidate, tie, or outside-guide result exactly as returned by the canonical engine.
+- Candidate, tie, outside-guide, or ordinary no-match result exactly as returned by the canonical engine.
 - Provenance, unknowns, and conflicts.
 - Tree Case continuity.
 
 ### State changes
 
 - `Review an observation` reopens the relevant evidence without destroying the completed record.
-- A correction returns to the appropriate investigation state and recomputes the record.
+- A correction returns to the appropriate investigation state and recomputes the record, including an ordinary no-match.
 - Selecting a related homeowner need enters State 14.
 - Profile access uses approved source-backed content only.
 
@@ -920,8 +952,9 @@ Required order:
 ### Required copy
 
 - `Homeowner tree`
-- One of `Best current match`, `Current tie`, or `Outside this guide`
+- One of `Best current match`, `Current tie`, `Outside this guide`, or `No match among these trees`
 - `Not confirmed` or the more specific canonical bounded-status language
+- For ordinary no-match: `The current observations do not support any profile in this [n]-tree guide.`
 - `Evidence`
 - `Supports`
 - `Unknown`
@@ -943,6 +976,7 @@ Render the completed record in place with headings and lists. A status message a
 
 - Do not collapse the record into a chatbot paragraph.
 - Do not omit conflicting or unknown evidence.
+- Do not invent a candidate for ordinary no-match or present it as outside-supported-universe unless the canonical result says so.
 - Do not imply that Species establishes diagnosis, treatment, structural condition, hazard, necessary work, or price.
 - Do not allow caller-supplied candidate IDs, order, rankings, scores, or confidence to control the record.
 
@@ -1185,23 +1219,29 @@ Every evidence annotation must expose four properties when applicable:
 
 1. **Trait:** the normalized observation in homeowner-readable language.
 2. **Value:** the selected or observed value.
-3. **Provenance:** user confirmed, image observed, or another approved source.
-4. **State:** usable, provisional, conflicted, unknown, skipped, or unavailable.
+3. **Origin/provenance:** where the evidence came from, such as `user_stated`, `image_observed`, or another approved source/reference.
+4. **Evidence state:** how the case treats it, such as `observed`, `provisional`, `confirmed-by-user`, `conflicted`, `unknown`, skipped, or unavailable.
+
+Origin and evidence state are separate. Confirming an image-derived observation changes its evidence state without erasing its image origin/reference. An explicit homeowner correction creates user-stated evidence that supersedes the prior extraction while leaving the history traceable. `Confirmed by user` means the homeowner confirmed their observation or report; it does not mean a professional verified the botanical fact.
 
 Examples:
 
 ```text
 SIMPLE LEAF
-Observed from photo
-Usable clue
+Origin: Image observed
+State: Observed · usable clue
 
 ALTERNATE?
-Photo suggests this
-Needs confirmation
+Origin: Image observed
+State: Provisional · needs confirmation
+
+ALTERNATE
+Origin: Image observed
+State: Confirmed by user
 
 BARK
-User confirmed
-Conflicts with current candidates
+Origin: User stated
+State: Confirmed by user · conflicts with current candidates
 
 FRUIT / SEED
 Not visible
@@ -1261,7 +1301,7 @@ Every state must support:
 - concise announcements for asynchronous and candidate-state changes;
 - review of eliminated, conflicting, unknown, and skipped evidence after a transition.
 
-The text-only or host fallback result must preserve candidate set, evidence provenance, tie, contradiction, outside-guide, next-observation, and final bounded-status meaning.
+The text-only or host fallback result must preserve candidate set, evidence origin and state, tie, contradiction, ordinary no-match, outside-guide, next-observation, and final bounded-status meaning.
 
 ## Implementation guardrails
 
@@ -1305,13 +1345,16 @@ The text-only or host fallback result must preserve candidate set, evidence prov
 - No fake confidence, probability, or completion score.
 - No identification claim stronger than the canonical bounded result.
 - Ties receive equal visual weight.
+- Ordinary no-match remains `No match among these trees` and displays no candidate.
 - Outside-guide remains an honest bounded outcome.
+- Ordinary no-match and outside-supported-universe remain visibly and textually distinct.
 - Supporting, conflicting, unknown, and skipped evidence stays reviewable.
 - The completed result remains a field record, not a chatbot answer or generic success card.
 
 ### Cross-tool integrity
 
 - Carry relevant Tree Case evidence forward.
+- Scope all carried Species evidence and results to the current `activeTreeId`; switch or create tree context before accepting observations about another tree.
 - Do not make the homeowner re-enter sufficiently supported facts.
 - Do not imply that Species proves another capability's result.
 - Preserve each destination capability's approved anatomy and tone.
@@ -1325,7 +1368,7 @@ A Species UI change is not ready for approval unless the reviewer can answer yes
 
 - Are all 16 specified states represented in designs, fixtures, stories, or equivalent review artifacts?
 - Can the canonical engine reach the intended state without UI-only ranking logic?
-- Are correction, restoration, unknown, contradiction, tie, and outside-guide branches reviewable?
+- Are correction, restoration, unknown, contradiction, tie, ordinary no-match, and outside-guide branches reviewable?
 - Are mobile and reduced-motion versions shown for every critical state?
 
 ### Cause and effect
@@ -1341,6 +1384,7 @@ A Species UI change is not ready for approval unless the reviewer can answer yes
 - Are ties visually equal?
 - Are conflicts and unknowns visible in the result?
 - Is the guide boundary explicit?
+- Are ordinary no-match and outside-supported-universe presented as distinct canonical outcomes?
 - Are confidence and certainty claims limited to what the canonical engine establishes?
 
 ### Usability
@@ -1364,7 +1408,7 @@ A Species UI change is not ready for approval unless the reviewer can answer yes
 - Is every motion-carried relationship also stated in text or structure?
 - Can a homeowner review removed candidates after an atomic update?
 - Are focus and live-region announcements restrained and useful?
-- Does text-only output preserve candidates, evidence, ties, conflicts, outside-guide meaning, and next observation?
+- Does text-only output preserve candidates, evidence origin and state, ties, conflicts, ordinary no-match, outside-guide meaning, and next observation?
 
 ## Definition of done for the screen-state layer
 

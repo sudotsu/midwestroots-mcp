@@ -1,6 +1,6 @@
 # Species — Phase 1 Implementation Plan
 
-**Status:** Approved; canonical Species foundation PR is the implementation prerequisite
+**Status:** Approved; canonical Species foundation prerequisite satisfied by merged PR #113
 
 **Capability:** Species Matching  
 **Goal:** Prove the MCP/app architecture with one deterministic homeowner capability before expanding to the other four.
@@ -41,7 +41,7 @@ Follow the current OpenAI plugin guidance:
 4. run direct/indirect/edge/out-of-scope evals;
 5. implement and verify the illustrated in-chat UI against those tool results.
 
-Tool behavior should be established before wiring the UI to it, but Phase 1 is not complete without illustrated choice cards and illustrated candidate results. The UI must preserve matched/conflicting evidence, ties, ambiguity, no-match, and next-observation behavior.
+Tool behavior should be established before wiring the UI to it, but Phase 1 is not complete without illustrated choice cards and illustrated candidate results. The UI must preserve matched/conflicting evidence, ties, ambiguity, ordinary no-match, outside-supported-universe, and next-observation behavior.
 
 The Species design documents have distinct roles:
 
@@ -164,7 +164,7 @@ Implement exactly three Species tools in Phase 1:
 ### `render_species_guide`
 
 - read-only illustrated Species UI resource/result;
-- renders choice cards, candidate results, evidence, ambiguity/no-match, and next-observation state;
+- renders choice cards, candidate results, evidence, ambiguity, ordinary no-match, outside-supported-universe, and next-observation state;
 - uses or recomputes the canonical deterministic result from normalized observations and the recorded dataset version;
 - never trusts caller-supplied candidate IDs, ordering, scores, confidence, or rankings;
 - uses the canonical trait vocabulary and Species illustrations vendored from `omahatreecare`.
@@ -184,7 +184,7 @@ All three tools should declare accurate metadata including:
 - `openWorldHint: false` for the closed species dataset;
 - `destructiveHint: false`.
 
-The server should have concise shared instructions reinforcing that the Species matcher is authoritative for in-scope candidate narrowing and that ambiguity/no-match must be preserved.
+The server should have concise shared instructions reinforcing that the Species matcher is authoritative for in-scope candidate narrowing and that ambiguity, ordinary no-match, and outside-supported-universe must be preserved distinctly.
 
 ## 8. Tool result design
 
@@ -259,11 +259,12 @@ Test a focused set of conversational cases:
 - ambiguous/tied;
 - winter/leaf-off;
 - contradiction;
-- no-match;
+- ordinary no-match;
+- outside-supported-universe;
 - user correction;
 - safety-handoff context;
 - adversarial request to "just tell me what it is" without using the matcher.
-- illustrated choice and candidate states, including ties, contradiction, and no-match.
+- illustrated choice and candidate states, including ties, contradiction, ordinary no-match, and outside-supported-universe.
 
 Do not run unrelated full-repository/browser suites repeatedly during every edit. Define the gate and run what the change actually requires.
 
@@ -280,7 +281,7 @@ Phase 1 is complete when:
 - MCP Inspector passes representative/invalid calls;
 - ChatGPT developer mode can call the tools naturally;
 - the model does not replay the entire website questionnaire when evidence is already available;
-- ambiguity, ties, contradictions, and no-match survive end to end;
+- ambiguity, ties, contradictions, ordinary no-match, and outside-supported-universe survive distinctly end to end;
 - `nextObservation` drives targeted follow-up;
 - illustrated choice cards and candidate UI work end to end;
 - the completed experience meets `docs/SPECIES-UX-BLUEPRINT.md`, `docs/SPECIES-VISUAL-EXECUTION-SPEC.md`, and `docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md` rather than presenting a generic form or chatbot result;
@@ -303,6 +304,6 @@ Phase 1 is complete when:
 - unreviewed automatic upstream pulls or deployment;
 - a generic AI tree-identification model;
 
-## 14. Implementation prerequisite
+## 14. Implementation starting point
 
-The next implementation work is the canonical Species foundation PR in `sudotsu/omahatreecare`, covering the matching, discrimination, contradiction/recheck, tie, no-match, and misleading-illustration issues identified during planning. Do not begin the MCP foundation until that PR is reviewed and merged; the first vendor snapshot must come from that approved canonical state.
+The matching, discrimination, contradiction/recheck, tie, no-match, and illustration corrections required for the canonical Species foundation were merged into `sudotsu/omahatreecare` through PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). Begin the Species MCP foundation from that approved canonical state, and record that commit as the source of the first reproducible vendor snapshot.

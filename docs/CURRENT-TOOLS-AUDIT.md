@@ -53,7 +53,7 @@ Primary implementation currently includes:
 
 The guide intentionally covers ten common Omaha-area trees rather than pretending to be a universal tree-identification system.
 
-That limitation is a product feature, not merely missing data: the existing UI explains that the guide covers trees Omaha homeowners are especially likely to encounter and explicitly allows a no-match/outside-guide outcome.
+That limitation is a product feature, not merely missing data: the guide covers trees Omaha homeowners are especially likely to encounter and preserves ordinary no-match separately from an explicit outside-supported-universe outcome.
 
 ## Current observations
 
@@ -75,7 +75,7 @@ The flow also records two safety-context fields:
 
 Those safety fields do not alter the species match itself.
 
-## Intended behavior and canonical foundation work
+## Current canonical behavior
 
 ### Uncertainty is first-class
 
@@ -91,15 +91,15 @@ When two candidates score equally, the first display position is not represented
 
 ### No-match is valid
 
-The canonical foundation must preserve a clear outside-guide/no-match result whenever usable evidence excludes the supported ten-tree universe, including usable needles/scales evidence.
+The canonical foundation preserves two distinct results without forcing a species: ordinary no-match when the current observations support no profile in the bounded guide, and outside-supported-universe when a usable observation such as needles/scales falls beyond that guide.
 
 ### Next observation must discriminate among remaining candidates
 
-The current variety heuristic is not sufficient. The canonical foundation must calculate actual separation among the remaining candidates and stop asking when no unused observation can usefully separate them. This result is what the conversational layer must use.
+The canonical foundation now calculates actual separation among the remaining candidates and stops asking when no unused observation can usefully separate them. This result is what the conversational layer must use.
 
-### Known canonical fixes before MCP implementation
+### Canonical foundation corrections merged
 
-The next implementation PR in `sudotsu/omahatreecare` must also:
+PR #113 in `sudotsu/omahatreecare` completed the required canonical corrections:
 
 - treat `fruit=none-seen` as non-discriminating rather than positive match evidence;
 - preserve ties without treating source/display order as confidence;
@@ -118,7 +118,7 @@ Example:
 
 > "What kind of tree is this? It has opposite leaves and helicopter seeds. Here are two pictures."
 
-The conversational layer should not ask the homeowner whether leaves are opposite or whether winged seeds are present again. It should create provisional structured observations from the statement/images, invoke the deterministic matcher, then use `nextObservation` if another fact would materially distinguish the remaining candidates.
+The conversational layer should not ask the homeowner whether leaves are opposite or whether winged seeds are present again. It should create structured observations with separate origin/provenance and evidence state, invoke the deterministic matcher, then use `nextObservation` if another fact would materially distinguish the remaining candidates.
 
 ### Image use
 
@@ -127,7 +127,7 @@ Images should help populate candidate observations, but image interpretation mus
 Initial rule:
 
 1. Extract visible traits that correspond to the approved observation vocabulary.
-2. Mark image-derived observations as provisional unless the evidence is clear and/or the homeowner confirms it.
+2. Retain `image_observed` origin/provenance and assign the supported evidence state; homeowner confirmation may change the state to `confirmed-by-user` without erasing that origin/reference.
 3. Pass those normalized observations to the deterministic matcher.
 4. Return candidate matches, contradictions, and the engine-selected next observation.
 5. Ask for a specific better photograph or homeowner observation when needed.
@@ -189,10 +189,11 @@ The first capability is not complete merely because an MCP function returns JSON
 4. **Winter case:** leaves are unavailable; leaf traits are excluded without penalty.
 5. **Contradictory evidence:** the system shows what supports and conflicts with the leading candidate.
 6. **Tie:** the system represents the tie honestly and asks the best discriminating next observation.
-7. **No match:** the system says the tree may be outside the ten-tree guide instead of forcing a species.
-8. **User correction:** homeowner corrects a trait; candidate set is recalculated without restarting the case.
-9. **Safety context:** a visible failure concern can trigger an appropriate hazard handoff without changing species ranking.
-10. **Cross-tool continuation:** after species narrowing, Problem Navigator can reuse the species result and evidence without re-asking the same questions.
+7. **Ordinary no-match:** the system says the current observations support no profile among these trees and displays no fallback candidate.
+8. **Outside supported universe:** the system explains that a usable observation falls outside the ten-tree guide without presenting it as ordinary no-match.
+9. **User correction:** homeowner corrects a trait; candidate set is recalculated without restarting the case.
+10. **Safety context:** a visible failure concern can trigger the shared safety route without changing species ranking.
+11. **Cross-tool continuation:** after species narrowing, Problem Navigator can reuse the species result and evidence without re-asking the same questions.
 
 ## Preliminary classification
 

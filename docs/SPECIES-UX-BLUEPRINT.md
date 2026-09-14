@@ -15,7 +15,7 @@ The experience is driven by the canonical deterministic matcher. The interface e
 1. The homeowner asks something like “What kind of tree is this?” and may upload photographs.
 2. When the platform supports it, the homeowner's tree or photograph becomes the visual center of the investigation.
 3. Traits that can reasonably be extracted appear as field annotations or clues.
-4. Every clue visibly distinguishes its provenance/state: user-confirmed, image-observed, provisional, conflicted, or unknown.
+4. Every clue visibly distinguishes origin/provenance from evidence state: for example, `image_observed` origin may remain attached when its state becomes `confirmed-by-user`. Homeowner confirmation records confirmation of their observation or report, not professional verification of the botanical fact.
 5. `match_species` runs immediately with the usable normalized evidence.
 6. The remaining canonical candidates become visible.
 7. The matcher selects the most useful next observation through its deterministic `nextObservation` logic.
@@ -30,7 +30,7 @@ The experience is driven by the canonical deterministic matcher. The interface e
 11. Different trees and conversations may therefore follow different paths.
 12. Contradictions cause a targeted recheck when a recheck can improve the result; they do not force a winner.
 13. Ties remain ties and candidate order does not imply confidence.
-14. No-match remains no-match.
+14. Ordinary no-match remains `No match among these trees`, displays no candidate, and remains distinct from an outside-supported-universe result.
 15. “Not sure” and “cannot observe” remain normal routes.
 16. Questioning stops when another observation will not materially improve candidate separation.
 17. The final result feels like a completed field-guide or specimen entry rather than a chatbot answer.
@@ -39,7 +39,7 @@ The experience is driven by the canonical deterministic matcher. The interface e
 
 Every meaningful Species input should make its effect understandable. The interface may use candidate movement, removal, evidence annotations, changed comparison prompts, or brief explanatory copy. Motion should support this cause-and-effect relationship and respect reduced-motion settings.
 
-The interface must not animate away important contradictions or imply that elimination proves identification. Text-only and fallback output must preserve the same candidate, evidence, tie, contradiction, no-match, and next-observation meaning.
+The interface must not animate away important contradictions or imply that elimination proves identification. Text-only and fallback output must preserve the same candidate, evidence, tie, contradiction, ordinary no-match, outside-supported-universe, and next-observation meaning.
 
 ## Final Species state
 
@@ -47,6 +47,7 @@ As applicable to the case, the completed field entry may show:
 
 - the homeowner's tree or photograph;
 - strongest candidate or tied candidates;
+- an ordinary no-match or outside-supported-universe result when no candidate should be displayed;
 - common and scientific names;
 - explicit provisional/not-confirmed status;
 - supporting observations;
@@ -83,7 +84,11 @@ Generated botanical imagery must not masquerade as identification evidence. Real
 
 The homeowner should never be directed to climb, break branches, enter a fall zone, or approach utility lines to collect a clue. Image-derived observations remain provisional unless their evidence status supports stronger treatment.
 
+The shared safety route may interrupt any Species state. It preserves the Species investigation, collected evidence, current `activeTreeId`, and Tree Case; shows the canonical shared first action; and resumes Species only when appropriate. Species does not create or modify hazard severity, and safety observations do not affect Species candidate ranking.
+
 A Species result does not establish diagnosis, treatment need, structural condition, hazard, or necessary work. Safety handoffs preserve the Species result while routing the relevant Tree Case evidence under the canonical utility and Hazard policy.
+
+All Species evidence and results belong to the current Tree Case `activeTreeId`. Evidence from another tree must enter a switched or newly created tree context rather than merge with the active tree.
 
 ## Phase 1 acceptance criteria
 
@@ -94,7 +99,9 @@ Species Phase 1 is not complete until:
 - visual comparison choices use corrected canonical illustrations;
 - every selection updates canonical matcher state and shows meaningful feedback;
 - different candidate states can produce different next observations;
-- ties, contradictions, unknowns, and no-match survive visually and in text fallback;
+- ties, contradictions, unknowns, ordinary no-match, and outside-supported-universe survive distinctly in visual and text fallback;
+- evidence origin and evidence state remain separate through confirmation and correction;
+- Species evidence and results remain scoped to the current `activeTreeId`;
 - the interface stops when no useful separation remains;
 - keyboard, touch, color-independent, reduced-motion, and fallback behavior are verified;
 - the final state reads as a Midwest Roots field entry;

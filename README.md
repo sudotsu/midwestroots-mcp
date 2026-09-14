@@ -242,7 +242,7 @@ Examples include MCP eval harnesses, submission validators, schema linting, gene
 
 ## Current priority
 
-The next implementation work is the canonical Species foundation PR in `sudotsu/omahatreecare`. Do not begin the MCP foundation until that PR is reviewed and merged.
+The canonical Species foundation corrections are merged in `sudotsu/omahatreecare` PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). The next approved implementation work is the Species MCP foundation and reproducible vendor snapshot from that canonical state.
 
 Production hosting remains undecided. Keep the MCP implementation host-neutral and compare Vercel with Render only after the Species vertical slice has a working `/mcp` handler, using the acceptance criteria in `docs/PLATFORM-DISTRIBUTION.md`.
 

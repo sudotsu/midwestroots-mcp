@@ -42,6 +42,8 @@ ChatGPT must not silently replace deterministic matching, routing, screening, or
 
 Every meaningful Tree Case fact must preserve both its value and how that value was obtained.
 
+Evidence origin/provenance and evidence status are separate fields. A status change must not rewrite where evidence came from.
+
 Each evidence item should support at least:
 
 - `field` — canonical field name;
@@ -76,6 +78,8 @@ A future capability may justify a numeric confidence measure, but a generic LLM 
 
 Capability interfaces should make provenance and evidence status visible when they materially affect interpretation. “Not sure” and unknown are useful states, not failed answers.
 
+Confirming an image-derived observation changes its status to `confirmed-by-user` while retaining its `image_observed` provenance and source reference. This means the homeowner confirmed their observation or report; it does not mean a professional verified the underlying botanical or safety fact. An explicit homeowner correction creates `user_stated` evidence that supersedes the earlier extraction for current decisions while the extraction and correction history remain traceable.
+
 ## Field groups
 
 The Tree Case should be extensible, but the first version should cover the fields the five existing engines actually need.
@@ -83,16 +87,21 @@ The Tree Case should be extensible, but the first version should cover the field
 ### Case identity
 
 - case/session ID;
+- `activeTreeId` for the tree currently being discussed;
 - approximate location or service area when supplied/available;
 - local-rule jurisdiction where relevant;
 - number of trees being discussed;
-- active tree within a multi-tree case.
+- identifiers for any other trees within a multi-tree case.
+
+### Active-tree boundary
+
+Every observation, image, capability result, and handoff must be scoped to a tree identifier. Visible Species evidence and results belong to the current `activeTreeId`. Observations from adjacent or newly introduced trees must never silently merge into the active tree. When the homeowner changes which tree they are discussing, orchestration must switch to an existing tree context or create a new one before accepting the new evidence.
 
 ### Tree identity
 
 - species candidate(s);
 - scientific/common name identifiers from the approved species dataset;
-- species match state: narrowed, ambiguous, tied, no-match, outside-current-guide;
+- species match state: narrowed, ambiguous, tied, ordinary no-match, outside-supported-universe;
 - matched features;
 - conflicting features;
 - next discriminating observation.
@@ -142,6 +151,8 @@ Electrical routing follows the merged canonical website policy:
 
 The homeowner is not asked to determine whether Midwest Roots must contact the utility. `sudotsu/omahatreecare`, including the cross-tool policy merged through PR #112, is canonical for this routing behavior.
 
+The shared safety route has precedence and may interrupt any capability state. An interruption preserves the current `activeTreeId`, capability work, and collected evidence; shows the approved first action; and resumes the prior capability only when appropriate. A capability must not create its own hazard severity or use safety observations to modify an unrelated deterministic result such as Species candidate ranking.
+
 ### Work intent
 
 - homeowner's desired task;
@@ -175,6 +186,8 @@ Local Midwest Roots/Omaha pricing must never be silently reinterpreted as a nati
 6. A problem category cannot be promoted to a diagnosis merely because it is conversationally convenient.
 7. Capability-specific source rules outrank generic model assumptions.
 8. Unknown is a valid state. The system should not invent a value merely to complete a schema.
+9. Evidence and results from different tree identifiers must never be merged implicitly.
+10. Shared safety routing may interrupt any capability without discarding the active tree's existing case state.
 
 ## Question-selection rule
 
@@ -223,4 +236,5 @@ The contract remains satisfied when:
 - no capability requires the model to fabricate a missing deterministic input;
 - representative multi-turn homeowner conversations can move across capabilities without repeating already-known information;
 - correction/conflict behavior is covered by planned tests;
+- every observation and result remains scoped to the correct `activeTreeId`, including multi-tree conversations;
 - local-only data and rules remain clearly scoped.
