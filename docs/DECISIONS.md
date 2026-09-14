@@ -176,7 +176,7 @@ Every meaningful input must create meaningful visible feedback. The reward is cl
 
 **Decision:** Species is the first/reference UX implementation. Its illustrated investigation, choice cards, candidate states, evidence annotations, and field-guide result are required Phase 1 behavior.
 
-`render_species_guide` must remain bound to the canonical deterministic result as defined in D-016. See `docs/SPECIES-UX-BLUEPRINT.md`.
+`render_species_guide` must remain bound to the canonical deterministic result as defined in D-016. `docs/SPECIES-UX-BLUEPRINT.md` defines the Species experience and behavior; `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` is authoritative for concrete Species visual/UI implementation.
 
 ## D-022 — Capability-specific UX expressions
 

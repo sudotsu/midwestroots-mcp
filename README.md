@@ -77,6 +77,7 @@ midwestroots-mcp/
 │   ├── CURRENT-TOOLS-AUDIT.md          # exact audit of the 5 existing web tools
 │   ├── UI-DESIGN-THESIS.md             # shared interaction and visual philosophy
 │   ├── SPECIES-UX-BLUEPRINT.md         # Phase 1 reference experience
+│   ├── SPECIES-VISUAL-EXECUTION-SPEC.md # authoritative Species visual execution
 │   ├── CROSS-TOOL-UX-MAP.md            # distinct capability metaphors
 │   ├── GAP-ANALYSIS.md                 # keep/adapt/expand/redesign by capability
 │   ├── ORCHESTRATION.md                # when/how capabilities call one another
@@ -185,6 +186,8 @@ midwestroots-mcp/
     ├── ISSUE_TEMPLATE/
     └── pull_request_template.md
 ```
+
+The design documents have distinct authority: `docs/UI-DESIGN-THESIS.md` defines the product-wide philosophy, `docs/CROSS-TOOL-UX-MAP.md` defines how each capability expresses it, `docs/SPECIES-UX-BLUEPRINT.md` defines the Species experience and behavior, and `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` is the authoritative visual execution source for Species implementation.
 
 ## Approved planning baseline
 

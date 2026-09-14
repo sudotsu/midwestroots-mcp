@@ -220,8 +220,11 @@ Species is the first/reference UX implementation, with illustrated interaction r
 The detailed product and capability contracts are in:
 
 - `docs/UI-DESIGN-THESIS.md`;
+- `docs/CROSS-TOOL-UX-MAP.md`;
 - `docs/SPECIES-UX-BLUEPRINT.md`;
-- `docs/CROSS-TOOL-UX-MAP.md`.
+- `docs/SPECIES-VISUAL-EXECUTION-SPEC.md`.
+
+These documents have separate roles: the thesis defines the product-wide design philosophy, the cross-tool map defines each capability's distinct expression, the Species blueprint defines the Species experience and behavior, and the Species visual execution spec is authoritative for concrete Species visual/UI implementation.
 
 ## 6. Approved planning baseline
 

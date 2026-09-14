@@ -55,7 +55,7 @@ All five capabilities share the same interaction philosophy, evidence semantics,
 
 Each capability receives a visual metaphor, information architecture, interaction pattern, progress model, result presentation, and motion intensity appropriate to its job. The product should feel like one family without feeling like the same tool five times.
 
-The approved capability expressions are defined in `docs/CROSS-TOOL-UX-MAP.md`. Species is the first/reference implementation and is defined in `docs/SPECIES-UX-BLUEPRINT.md`.
+The approved capability expressions are defined in `docs/CROSS-TOOL-UX-MAP.md`. Species is the first/reference implementation: `docs/SPECIES-UX-BLUEPRINT.md` defines its experience and behavior, and `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` is authoritative for its concrete visual/UI execution.
 
 ## Product-level acceptance criteria
 
@@ -71,8 +71,8 @@ A capability's UI direction is successful when:
 - keyboard, touch, color-independent, reduced-motion, and text fallback behavior preserve the task;
 - the result looks and reads like a Midwest Roots product rather than a generic generated interface.
 
-## Implementation choices still open
+## Execution authority and implementation choices
 
-This thesis locks the product direction, interaction principles, and capability boundaries. The exact production typography, palette tokens, shape language, texture treatment, illustration finish, and motion timings remain to be designed in the Species vertical slice. Midwest Roots/AJ must approve that practical visual execution before it becomes the shared production system.
+This thesis locks the product direction, interaction principles, and capability boundaries. `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` defines the approved typography direction, palette, shape language, texture treatment, illustration language, motion principles, screen states, and visual QA criteria for Species implementation. It establishes the concrete Species execution source without turning Species into a page template for the other capabilities.
 
 Platform-specific layout adaptations may be resolved during implementation when they preserve this contract. A proposed adaptation that materially weakens the visible-feedback, accessibility, fallback, or capability-metaphor requirements requires an explicit product decision.

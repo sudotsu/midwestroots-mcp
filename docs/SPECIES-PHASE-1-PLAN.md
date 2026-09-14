@@ -43,7 +43,14 @@ Follow the current OpenAI plugin guidance:
 
 Tool behavior should be established before wiring the UI to it, but Phase 1 is not complete without illustrated choice cards and illustrated candidate results. The UI must preserve matched/conflicting evidence, ties, ambiguity, no-match, and next-observation behavior.
 
-`docs/SPECIES-UX-BLUEPRINT.md` defines the required reference experience: the homeowner's tree/photo anchors an evolving field sheet, evidence provenance remains visible, selections create understandable candidate/evidence changes, and the final state reads as an authored field-guide entry. `docs/UI-DESIGN-THESIS.md` supplies the product-level design and fallback rules.
+The Species design documents have distinct roles:
+
+- `docs/UI-DESIGN-THESIS.md` defines the product-wide design philosophy;
+- `docs/CROSS-TOOL-UX-MAP.md` defines how each capability expresses that philosophy differently;
+- `docs/SPECIES-UX-BLUEPRINT.md` defines the Species experience concept and behavior;
+- `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` is the authoritative concrete visual execution source for Species implementation.
+
+Together they require the homeowner's tree/photo to anchor an evolving field sheet, visible evidence provenance, understandable candidate/evidence changes after selections, and a final state that reads as an authored field-guide entry.
 
 ## 3. Source reuse strategy
 
