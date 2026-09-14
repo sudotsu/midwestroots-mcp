@@ -4,6 +4,8 @@
 
 This document defines the visual and interaction execution for the first Midwest Roots homeowner experience: **Species**.
 
+`docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md` translates this authoritative visual system into the required screen anatomy, state transitions, persistent elements, implementation copy, mobile and reduced-motion behavior, and UI guardrails.
+
 Species establishes the shared design language for the Midwest Roots product family, but it does **not** establish a reusable page template for the other capabilities.
 
 The goal is not to create a beautiful questionnaire.
@@ -822,6 +824,8 @@ Before full Species UI implementation, create and review these states:
 14. Cross-tool handoff
 15. Mobile versions of all critical states
 16. Reduced-motion behavior
+
+The required anatomy and behavior for these states are defined in `docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md`.
 
 Do not jump directly from design concept to a finished monolithic component.
 

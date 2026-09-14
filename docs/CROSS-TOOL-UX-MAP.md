@@ -14,7 +14,7 @@ All five capabilities implement the interaction philosophy in `docs/UI-DESIGN-TH
 - The path changes with the remaining canonical candidates.
 - The completed result becomes a field-guide/specimen entry.
 
-Species is the first/reference UX implementation. Its detailed flow is defined in `docs/SPECIES-UX-BLUEPRINT.md`.
+Species is the first/reference UX implementation. `docs/SPECIES-UX-BLUEPRINT.md` defines its experience and behavior, `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` defines its authoritative visual system, and `docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md` defines its required implementation states and transitions. These Species-specific documents do not establish a reusable page template for the other capabilities.
 
 ## Tree Problem Navigator
 

@@ -222,9 +222,10 @@ The detailed product and capability contracts are in:
 - `docs/UI-DESIGN-THESIS.md`;
 - `docs/CROSS-TOOL-UX-MAP.md`;
 - `docs/SPECIES-UX-BLUEPRINT.md`;
-- `docs/SPECIES-VISUAL-EXECUTION-SPEC.md`.
+- `docs/SPECIES-VISUAL-EXECUTION-SPEC.md`;
+- `docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md`.
 
-These documents have separate roles: the thesis defines the product-wide design philosophy, the cross-tool map defines each capability's distinct expression, the Species blueprint defines the Species experience and behavior, and the Species visual execution spec is authoritative for concrete Species visual/UI implementation.
+These documents have separate roles: the thesis defines the product-wide design philosophy; the cross-tool map defines each capability's distinct expression; the Species blueprint defines the Species experience and behavior; the Species visual execution spec defines the authoritative Species visual system; and the Species screen-state wireframe spec defines the required screen anatomy, transitions, persistent elements, implementation copy, mobile and reduced-motion behavior, and UI guardrails.
 
 ## 6. Approved planning baseline
 

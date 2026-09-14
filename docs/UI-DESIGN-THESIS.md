@@ -55,7 +55,7 @@ All five capabilities share the same interaction philosophy, evidence semantics,
 
 Each capability receives a visual metaphor, information architecture, interaction pattern, progress model, result presentation, and motion intensity appropriate to its job. The product should feel like one family without feeling like the same tool five times.
 
-The approved capability expressions are defined in `docs/CROSS-TOOL-UX-MAP.md`. Species is the first/reference implementation: `docs/SPECIES-UX-BLUEPRINT.md` defines its experience and behavior, and `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` is authoritative for its concrete visual/UI execution.
+The approved capability expressions are defined in `docs/CROSS-TOOL-UX-MAP.md`. Species is the first/reference implementation: `docs/SPECIES-UX-BLUEPRINT.md` defines its experience and behavior, `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` defines its authoritative visual system, and `docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md` defines its required screen-state execution.
 
 ## Product-level acceptance criteria
 

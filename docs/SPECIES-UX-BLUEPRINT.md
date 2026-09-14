@@ -6,7 +6,7 @@
 
 Species should feel like an investigation unfolding around the homeowner's actual tree, not a spoken questionnaire. It is the first/reference implementation of the product philosophy in `docs/UI-DESIGN-THESIS.md`, while the other capabilities retain their own metaphors.
 
-This blueprint defines the Species experience concept and behavior. `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` is the authoritative source for implementing its concrete visual system, interaction presentation, responsive states, and visual QA.
+This blueprint defines the Species experience concept and behavior. `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` defines the authoritative Species visual system. `docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md` defines the required screen anatomy, state transitions, persistent elements, implementation copy, mobile and reduced-motion behavior, and UI guardrails.
 
 The experience is driven by the canonical deterministic matcher. The interface explains and visualizes matcher state; it does not create a second ranking system.
 

@@ -48,7 +48,8 @@ The Species design documents have distinct roles:
 - `docs/UI-DESIGN-THESIS.md` defines the product-wide design philosophy;
 - `docs/CROSS-TOOL-UX-MAP.md` defines how each capability expresses that philosophy differently;
 - `docs/SPECIES-UX-BLUEPRINT.md` defines the Species experience concept and behavior;
-- `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` is the authoritative concrete visual execution source for Species implementation.
+- `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` defines the authoritative Species visual system;
+- `docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md` defines the required screen anatomy, state transitions, persistent elements, implementation copy, mobile and reduced-motion behavior, and UI guardrails.
 
 Together they require the homeowner's tree/photo to anchor an evolving field sheet, visible evidence provenance, understandable candidate/evidence changes after selections, and a final state that reads as an authored field-guide entry.
 
@@ -282,7 +283,7 @@ Phase 1 is complete when:
 - ambiguity, ties, contradictions, and no-match survive end to end;
 - `nextObservation` drives targeted follow-up;
 - illustrated choice cards and candidate UI work end to end;
-- the completed experience meets `docs/SPECIES-UX-BLUEPRINT.md` rather than presenting a generic form or chatbot result;
+- the completed experience meets `docs/SPECIES-UX-BLUEPRINT.md`, `docs/SPECIES-VISUAL-EXECUTION-SPEC.md`, and `docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md` rather than presenting a generic form or chatbot result;
 - the vendored source can be reproduced and verified against its recorded `omahatreecare` commit;
 - Tree Case evidence can continue into the next capability later;
 - implementation is delivered through a branch and PR for review.

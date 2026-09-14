@@ -78,6 +78,7 @@ midwestroots-mcp/
 │   ├── UI-DESIGN-THESIS.md             # shared interaction and visual philosophy
 │   ├── SPECIES-UX-BLUEPRINT.md         # Phase 1 reference experience
 │   ├── SPECIES-VISUAL-EXECUTION-SPEC.md # authoritative Species visual execution
+│   ├── SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md # required Species screen states
 │   ├── CROSS-TOOL-UX-MAP.md            # distinct capability metaphors
 │   ├── GAP-ANALYSIS.md                 # keep/adapt/expand/redesign by capability
 │   ├── ORCHESTRATION.md                # when/how capabilities call one another
@@ -187,7 +188,7 @@ midwestroots-mcp/
     └── pull_request_template.md
 ```
 
-The design documents have distinct authority: `docs/UI-DESIGN-THESIS.md` defines the product-wide philosophy, `docs/CROSS-TOOL-UX-MAP.md` defines how each capability expresses it, `docs/SPECIES-UX-BLUEPRINT.md` defines the Species experience and behavior, and `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` is the authoritative visual execution source for Species implementation.
+The design documents have distinct authority: `docs/UI-DESIGN-THESIS.md` defines the product-wide philosophy; `docs/CROSS-TOOL-UX-MAP.md` defines how each capability expresses it; `docs/SPECIES-UX-BLUEPRINT.md` defines the Species experience and behavior; `docs/SPECIES-VISUAL-EXECUTION-SPEC.md` defines the authoritative Species visual system; and `docs/SPECIES-SCREEN-STATE-WIREFRAME-SPEC.md` defines the required screen anatomy, state transitions, persistent elements, implementation copy, mobile and reduced-motion behavior, and UI guardrails.
 
 ## Approved planning baseline
 
