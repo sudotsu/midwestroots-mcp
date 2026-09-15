@@ -1,5 +1,12 @@
 import { EvidenceSchema, TreeCaseSchema, type Evidence, type TreeCase } from "./schema.js";
 
+/**
+ * Appends evidence to the active tree in a validated copy of a Tree Case.
+ * The case revision is incremented, and results that depend on the new evidence
+ * field are marked stale.
+ *
+ * @throws If either input is invalid or the evidence does not target the active tree.
+ */
 export function addEvidence(treeCaseInput: TreeCase, evidenceInput: Evidence): TreeCase {
   const treeCase = TreeCaseSchema.parse(treeCaseInput);
   const evidence = EvidenceSchema.parse(evidenceInput);
@@ -26,6 +33,13 @@ export function addEvidence(treeCaseInput: TreeCase, evidenceInput: Evidence): T
   return TreeCaseSchema.parse(next);
 }
 
+/**
+ * Records a user confirmation as a new revision of existing evidence while
+ * preserving its origin and source reference.
+ *
+ * @throws If the referenced evidence is missing, has no value, or cannot be
+ * added to the active tree.
+ */
 export function confirmEvidence(
   treeCaseInput: TreeCase,
   evidenceId: string,
@@ -47,6 +61,13 @@ export function confirmEvidence(
   return addEvidence(treeCase, confirmation);
 }
 
+/**
+ * Records a correction as a user-stated revision of existing evidence. A null
+ * correction becomes unknown evidence; other values become user-confirmed.
+ *
+ * @throws If the referenced evidence is missing or the replacement cannot be
+ * validated and added to the active tree.
+ */
 export function correctEvidence(
   treeCaseInput: TreeCase,
   evidenceId: string,

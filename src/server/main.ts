@@ -4,6 +4,11 @@ import { createHttpService } from "./http.js";
 const config = loadServerConfig();
 const service = await createHttpService(config);
 let shuttingDown = false;
+
+/**
+ * Handles the first termination signal by closing the HTTP service. If shutdown
+ * exceeds the configured deadline, the process is marked for a failing exit.
+ */
 async function shutdown(signal: NodeJS.Signals) {
   if (shuttingDown) return;
   shuttingDown = true;

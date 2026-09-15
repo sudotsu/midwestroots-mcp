@@ -25,6 +25,13 @@ export const ServerConfigSchema = z.strictObject({
 
 export type ServerConfig = z.infer<typeof ServerConfigSchema>;
 
+/**
+ * Loads and validates server settings from an environment map. Non-production
+ * servers on a fixed port default to loopback Host allowlists; production
+ * requires explicit Host and Origin allowlists.
+ *
+ * @throws If a setting is invalid or a required production allowlist is absent.
+ */
 export function loadServerConfig(environment: NodeJS.ProcessEnv = process.env): ServerConfig {
   const runtimeEnvironment = RuntimeEnvironmentSchema.parse(environment.NODE_ENV ?? "development");
   const port = z.coerce.number().int().min(0).max(65_535).parse(environment.PORT ?? "3000");

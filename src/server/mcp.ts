@@ -10,6 +10,10 @@ export const MCP_SERVER_INFO = {
   version: "0.1.0",
 } as const;
 
+/**
+ * Creates an independent MCP server for one request. The foundation advertises
+ * resource and tool capabilities but currently enumerates each collection as empty.
+ */
 export function createMcpServer() {
   const mcp = new McpServer(MCP_SERVER_INFO, {
     capabilities: { resources: {}, tools: {} },

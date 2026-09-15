@@ -91,6 +91,9 @@ export type SpeciesObservations = z.infer<typeof SpeciesObservationsSchema>;
 export type SpeciesMatchInput = z.infer<typeof SpeciesMatchInputSchema>;
 export type TreeCaseReference = z.infer<typeof TreeCaseReferenceSchema>;
 
+/**
+ * Returns each canonical Species question key mapped to its ordered option values.
+ */
 export function canonicalQuestionValues() {
   return Object.fromEntries(
     speciesGuideQuestions.map((question) => [question.key, question.options.map(({ value }) => value)]),

@@ -50,6 +50,13 @@ function sha256(bytes: Uint8Array) {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+/**
+ * Loads the Species vendor manifest and recipe, validates their shared metadata,
+ * and verifies the recorded importer and output-file hashes.
+ *
+ * @returns The validated vendor manifest.
+ * @throws If a required file cannot be read or any schema, metadata, or hash check fails.
+ */
 export async function verifySpeciesVendor(repositoryRoot = process.cwd()) {
   const manifestPath = resolve(repositoryRoot, "tools/species-guide/SOURCE-MANIFEST.json");
   const manifest = SpeciesVendorManifestSchema.parse(JSON.parse(await readFile(manifestPath, "utf8")));

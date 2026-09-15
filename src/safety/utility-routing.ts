@@ -45,6 +45,13 @@ const utilityPriority: Record<UtilityStatus, number> = {
   "active-electrical-signs": 3,
 };
 
+/**
+ * Builds shared utility-safety guidance from current evidence on the active tree.
+ * The supplied utility status and optional electrical signs must match that
+ * evidence; any current electrical sign requires emergency-first guidance.
+ *
+ * @throws If the input, Tree Case, or selected evidence is invalid, stale, or inconsistent.
+ */
 export function routeSharedSafety(
   input: z.input<typeof SharedSafetyInputSchema>,
   treeCaseInput: TreeCase,

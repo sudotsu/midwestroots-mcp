@@ -65,6 +65,14 @@ export type HttpService = {
   close(): Promise<void>;
 };
 
+/**
+ * Creates an HTTP service after validating its configuration and the vendored
+ * Species snapshot under `repositoryRoot`. No socket is opened until `start`
+ * is called; `close` marks the service unready, stops accepting connections,
+ * and force-closes remaining connections after the configured timeout.
+ *
+ * @throws If configuration or vendor verification fails.
+ */
 export async function createHttpService(
   configInput: ServerConfig,
   repositoryRoot = process.cwd(),
