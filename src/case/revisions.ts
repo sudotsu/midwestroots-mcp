@@ -9,6 +9,12 @@ export function addEvidence(treeCaseInput: TreeCase, evidenceInput: Evidence): T
   const next = structuredClone(treeCase);
   const tree = next.trees.find(({ id }) => id === evidence.treeId);
   if (!tree) throw new Error(`Unknown tree ${evidence.treeId}`);
+  if (
+    evidence.supersedesEvidenceId
+    && tree.evidence.some((item) => item.supersedesEvidenceId === evidence.supersedesEvidenceId)
+  ) {
+    throw new Error(`Evidence ${evidence.supersedesEvidenceId} is already superseded`);
+  }
   tree.evidence.push(evidence);
   next.revision += 1;
   next.results = next.results.map((result) => ({
