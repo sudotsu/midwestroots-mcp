@@ -10,7 +10,7 @@ async function shutdown(signal: NodeJS.Signals) {
   console.log(JSON.stringify({ level: "info", event: "server_stopping", signal }));
   const timeout = setTimeout(() => {
     console.error(JSON.stringify({ level: "error", event: "shutdown_timeout" }));
-    process.exitCode = 1;
+    process.exit(1);
   }, config.shutdownTimeoutMs);
   timeout.unref();
   try {
@@ -20,10 +20,10 @@ async function shutdown(signal: NodeJS.Signals) {
   }
 }
 
+const address = await service.start();
 process.once("SIGINT", () => void shutdown("SIGINT"));
 process.once("SIGTERM", () => void shutdown("SIGTERM"));
 
-const address = await service.start();
 console.log(JSON.stringify({
   level: "info",
   event: "server_started",
