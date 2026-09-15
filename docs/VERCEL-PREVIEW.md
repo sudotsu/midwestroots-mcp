@@ -6,23 +6,24 @@ The purpose of this deployment is to put the merged Species vertical slice behin
 
 ## Deployment shape
 
-Vercel can run the repository's existing native Node HTTP server through the root `server.ts` entrypoint. The core MCP transport remains host-neutral and unchanged.
+The core MCP transport remains host-neutral. Vercel uses three thin API functions that delegate into the same shared HTTP request logic used by the local Node server.
 
-The Vercel-specific layer does three things:
+The Vercel-specific layer does four things:
 
-1. `server.ts` applies the Vercel environment adapter and starts the existing HTTP service in captured-listener mode. Vercel intercepts `server.listen()` rather than opening a normal local TCP listener, so this mode treats a successful `listen()` return as startup completion; ordinary local startup still waits for the callback and validates the bound address.
-2. `src/server/vercel-environment.ts` adds Vercel's generated deployment, branch, and production hostnames to the strict Host-header allowlist. Explicit `MCP_ALLOWED_HOSTS` entries are preserved for custom domains.
-3. `vercel-build` generates the self-contained Species UI before Vercel traces and packages the native server. `vercel.json` intentionally contains no `functions` override: Vercel only accepts those patterns for recognized function directories such as `api/`, while this project uses a root native Node server. Runtime-read Species paths remain literal in source so the native-server tracer can discover them.
+1. `api/mcp.ts`, `api/healthz.ts`, and `api/readyz.ts` are the Vercel Function entrypoints.
+2. `src/server/vercel-handler.ts` adapts each function invocation to `HttpService.handle()` without opening a second listener or duplicating MCP behavior.
+3. `src/server/vercel-environment.ts` adds Vercel's generated deployment, branch, and production hostnames to the strict Host-header allowlist. Explicit `MCP_ALLOWED_HOSTS` entries are preserved for custom domains; Origin validation is unchanged.
+4. `vercel.json` publishes the generated `dist` output, rewrites the public `/mcp`, `/healthz`, and `/readyz` paths to their API functions, and uses the valid `api/*.ts` function glob to package the generated MCP App HTML plus runtime-read Species vendor files. `vercel-build` generates the self-contained Species UI before packaging.
 
-No database, authentication system, persistence layer, image proxy, alternative MCP transport, or provider-specific domain logic is introduced.
+The original root-native-server approach was rejected during live preview because `functions.server.ts` is not a valid Vercel Function pattern and publishing only `dist` left the root server unrouted. The API-function adapter is the tested Vercel deployment shape.
 
-## Create the preview project
+No database, authentication system, persistence layer, image proxy, alternative MCP protocol, or provider-specific domain logic is introduced.
 
-Import `sudotsu/midwestroots-mcp` into Vercel as a new project.
+## Preview project
 
-The connected Vercel account currently does not have a `midwestroots-mcp` project, so project creation/import is the one platform-side step that cannot be completed by the ChatGPT Vercel connector.
+The Vercel project is `midwestroots-mcp` in the AxP Labs team and is linked to `sudotsu/midwestroots-mcp` on GitHub.
 
-Use the repository root. Do not select a framework preset that replaces the native Node server. Vercel should detect the root `server.ts` entrypoint.
+Use the repository root with the **Other** application preset. Build output is `dist`, as declared in `vercel.json`.
 
 ## Environment
 
@@ -48,7 +49,7 @@ After the deployment is ready, verify:
 - `GET /readyz` returns HTTP 200 and the canonical Species source commit `473e0407e42f60d6ecb4717de3f2649300d3be08`.
 - `POST /mcp` completes MCP initialization and enumerates exactly `match_species`, `get_species_profile`, and `render_species_guide` plus the versioned Species UI resource.
 
-A readiness failure is not something to work around: inspect the deployment bundle/logs for a missing manifest, importer, vendor file, or generated UI asset.
+A readiness failure is not something to work around: inspect the deployment bundle/logs for a missing manifest, importer, vendor file, generated UI asset, or environment mismatch.
 
 ## ChatGPT live acceptance
 
