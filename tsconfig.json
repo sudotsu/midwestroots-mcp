@@ -19,6 +19,6 @@
     "noEmit": true,
     "types": ["node", "vitest/globals"]
   },
-  "include": ["server.ts", "src/**/*.ts", "tests/**/*.ts", "ui/**/*.ts", "ui/**/*.tsx", "vitest.config.ts"],
+  "include": ["api/**/*.ts", "src/**/*.ts", "tests/**/*.ts", "ui/**/*.ts", "ui/**/*.tsx", "vitest.config.ts"],
   "exclude": ["dist", "node_modules", "tools/species-guide/vendor/**/*.tsx"]
 }
