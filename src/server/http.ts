@@ -204,6 +204,7 @@ export async function createHttpService(
       });
       const address = server.address();
       if (!address || typeof address === "string") throw new Error("HTTP server did not expose a TCP address");
+      ready = true;
       return { host: config.host, port: address.port };
     },
     async close() {
