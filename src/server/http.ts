@@ -58,28 +58,21 @@ async function closeServer(server: Server) {
   });
 }
 
-export type HttpStartOptions = {
-  /**
-   * Set only when the hosting platform captures `server.listen()` instead of
-   * opening a local socket. In that mode startup is complete once `listen()`
-   * returns; normal Node startup still waits for the listen callback and
-   * validates the bound TCP address.
-   */
-  listenerCaptured?: boolean;
-};
-
 export type HttpService = {
   server: Server;
   manifest: SpeciesVendorManifest;
-  start(options?: HttpStartOptions): Promise<{ host: string; port: number }>;
+  handle(request: IncomingMessage, response: ServerResponse): Promise<void>;
+  start(): Promise<{ host: string; port: number }>;
   close(): Promise<void>;
 };
 
 /**
- * Creates an HTTP service after validating its configuration and the vendored
- * Species snapshot under `repositoryRoot`. No socket is opened until `start`
- * is called; `close` marks the service unready, stops accepting connections,
- * and force-closes remaining connections after the configured timeout.
+ * Creates the shared HTTP application after validating configuration and the
+ * vendored Species snapshot. The returned `handle` method is the transport-neutral
+ * request surface used by both the local Node listener and Vercel functions.
+ *
+ * `readyz` reflects application readiness (validated config + verified vendor
+ * snapshot), not whether a particular hosting platform opened a TCP socket.
  *
  * @throws If configuration or vendor verification fails.
  */
@@ -89,32 +82,8 @@ export async function createHttpService(
 ): Promise<HttpService> {
   const config = ServerConfigSchema.parse(configInput);
   const manifest = await verifySpeciesVendor(repositoryRoot);
-  let ready = false;
+  let ready = true;
   const activeRequests = new Set<Promise<void>>();
-
-  const server = createServer((request, response) => {
-    const requestId = randomUUID();
-    response.setHeader("x-request-id", requestId);
-    let task: Promise<void>;
-    task = handleRequest(request, response, requestId)
-      .catch((error) => {
-        console.error(JSON.stringify({
-          level: "error",
-          event: "unhandled_request_failure",
-          requestId,
-          message: error instanceof Error ? error.message : "Unknown error",
-        }));
-        if (!response.headersSent) {
-          writeJson(response, 500, {
-            error: { code: "internal_error", message: "Internal server error", requestId },
-          });
-        } else if (!response.writableEnded) {
-          response.destroy();
-        }
-      })
-      .finally(() => activeRequests.delete(task));
-    activeRequests.add(task);
-  });
 
   async function handleRequest(request: IncomingMessage, response: ServerResponse, requestId: string) {
     let path: string;
@@ -191,16 +160,40 @@ export async function createHttpService(
     }
   }
 
+  function handle(request: IncomingMessage, response: ServerResponse) {
+    const requestId = randomUUID();
+    response.setHeader("x-request-id", requestId);
+    let task: Promise<void>;
+    task = handleRequest(request, response, requestId)
+      .catch((error) => {
+        console.error(JSON.stringify({
+          level: "error",
+          event: "unhandled_request_failure",
+          requestId,
+          message: error instanceof Error ? error.message : "Unknown error",
+        }));
+        if (!response.headersSent) {
+          writeJson(response, 500, {
+            error: { code: "internal_error", message: "Internal server error", requestId },
+          });
+        } else if (!response.writableEnded) {
+          response.destroy();
+        }
+      })
+      .finally(() => activeRequests.delete(task));
+    activeRequests.add(task);
+    return task;
+  }
+
+  const server = createServer((request, response) => {
+    void handle(request, response);
+  });
+
   return {
     server,
     manifest,
-    async start(options = {}) {
-      if (options.listenerCaptured) {
-        server.listen(config.port, config.host);
-        ready = true;
-        return { host: config.host, port: config.port };
-      }
-
+    handle,
+    async start() {
       await new Promise<void>((resolve, reject) => {
         const onError = (error: Error) => reject(error);
         server.once("error", onError);
@@ -209,9 +202,9 @@ export async function createHttpService(
           resolve();
         });
       });
-      ready = true;
       const address = server.address();
       if (!address || typeof address === "string") throw new Error("HTTP server did not expose a TCP address");
+      ready = true;
       return { host: config.host, port: address.port };
     },
     async close() {
