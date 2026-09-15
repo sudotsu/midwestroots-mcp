@@ -1,4 +1,5 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
+import { request as httpRequest } from "node:http";
 
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -24,6 +25,7 @@ async function startService(options: { allowedOrigins?: string[] } = {}) {
       NODE_ENV: "test",
       HOST: "127.0.0.1",
       PORT: String(port),
+      MCP_ALLOWED_HOSTS: `127.0.0.1:${port}`,
       MCP_ALLOWED_ORIGINS: options.allowedOrigins?.join(",") ?? "",
     },
     stdio: ["pipe", "pipe", "pipe"],
@@ -59,6 +61,25 @@ async function stopService(service: ChildProcessWithoutNullStreams, signal: Node
   });
 }
 
+async function requestRawPath(baseUrl: string, path: string) {
+  const url = new URL(baseUrl);
+  return new Promise<{ statusCode: number | undefined; body: string }>((resolve, reject) => {
+    const request = httpRequest({
+      hostname: url.hostname,
+      port: Number(url.port),
+      method: "GET",
+      path,
+    }, (response) => {
+      let body = "";
+      response.setEncoding("utf8");
+      response.on("data", (chunk) => { body += chunk; });
+      response.on("end", () => resolve({ statusCode: response.statusCode, body }));
+    });
+    request.once("error", reject);
+    request.end();
+  });
+}
+
 describe("MCP HTTP foundation", () => {
   it("reports health and canonical readiness", async () => {
     const { baseUrl } = await startService();
@@ -87,7 +108,7 @@ describe("MCP HTTP foundation", () => {
     await client.close();
   });
 
-  it("returns structured errors for invalid routes, methods, and JSON", async () => {
+  it("returns structured errors for invalid routes, methods, JSON, and request targets", async () => {
     const { baseUrl } = await startService();
     const missing = await fetch(`${baseUrl}/missing`);
     expect(missing.status).toBe(404);
@@ -104,6 +125,15 @@ describe("MCP HTTP foundation", () => {
     });
     expect(malformed.status).toBe(400);
     expect(await malformed.json()).toMatchObject({ jsonrpc: "2.0", error: { code: -32700 } });
+
+    const malformedTarget = await requestRawPath(baseUrl, "//[");
+    expect(malformedTarget.statusCode).toBe(400);
+    expect(JSON.parse(malformedTarget.body)).toMatchObject({
+      error: { code: "invalid_request_target" },
+    });
+
+    const healthAfterMalformedTarget = await fetch(`${baseUrl}/healthz`);
+    expect(healthAfterMalformedTarget.status).toBe(200);
   });
 
   it("rejects an unapproved browser origin before MCP dispatch", async () => {
