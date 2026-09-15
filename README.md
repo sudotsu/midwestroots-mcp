@@ -247,3 +247,23 @@ The canonical Species foundation corrections are merged in `sudotsu/omahatreecar
 Production hosting remains undecided. Keep the MCP implementation host-neutral and compare Vercel with Render only after the Species vertical slice has a working `/mcp` handler, using the acceptance criteria in `docs/PLATFORM-DISTRIBUTION.md`.
 
 Species final content review and refreshed local Cost pricing approval remain release gates. Midwest Roots/AJ owns practical and product approval; authoritative factual claims remain source-backed. Publication should ultimately use the Midwest Roots or other owner-controlled verified publisher identity.
+
+## MCP foundation development
+
+The current implementation is a host-neutral, stateless Node service with Streamable HTTP at `POST /mcp`, liveness at `GET /healthz`, and vendor-aware readiness at `GET /readyz`. This foundation intentionally enumerates no homeowner tools or resources; the three approved Species tools arrive in the next vertical-slice change.
+
+```sh
+npm install
+npm run dev
+```
+
+Development uses safe loopback defaults. Production startup requires explicit comma-separated `MCP_ALLOWED_HOSTS` and `MCP_ALLOWED_ORIGINS`; supply them through the host's environment configuration. See `.env.example` for all runtime settings. The server does not use accounts, a database, server-side sessions, or an LLM SDK.
+
+The canonical Species snapshot is generated from Git objects at the immutable upstream commit recorded in `tools/species-guide/VENDOR-SOURCE.json`:
+
+```sh
+npm run vendor:species -- --source /path/to/omahatreecare
+npm run verify:vendor
+```
+
+Run the bounded foundation gate with `npm run check`.

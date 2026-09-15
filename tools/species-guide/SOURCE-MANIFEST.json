@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "https://github.com/sudotsu/omahatreecare.git",
+  "sourceCommit": "473e0407e42f60d6ecb4717de3f2649300d3be08",
+  "sourceCommitSubject": "fix(species): correct matching semantics and trait visuals (#113)",
+  "importedOn": "2026-09-14",
+  "importer": {
+    "name": "midwestroots-species-vendor",
+    "version": "1.0.0",
+    "path": "scripts/vendor-species.mjs",
+    "sha256": "2ba2bff32e7d2ee1b006b4112f76d89c3dac74ae12d950ce377edd9cc5b1d8e1"
+  },
+  "dataset": {
+    "profileCount": 10,
+    "contentCheckedOn": "2026-08-02",
+    "nextReviewDue": "2027-02-02",
+    "finalContentReview": "pending"
+  },
+  "mechanicalTransforms": [
+    {
+      "id": "node-esm-relative-import-extensions",
+      "version": 1,
+      "description": "Append .js to extensionless relative TypeScript import specifiers for executable Node ESM output."
+    }
+  ],
+  "generatedArtifacts": true,
+  "files": [
+    {
+      "sourcePath": "src/data/tree-species.ts",
+      "outputPath": "tools/species-guide/vendor/omahatreecare/src/data/tree-species.ts",
+      "sourceSha256": "df5f072ae4572ebf4fc2980a2d5b898c41a5cdb667ab927a6b1afd857720df63",
+      "outputSha256": "df5f072ae4572ebf4fc2980a2d5b898c41a5cdb667ab927a6b1afd857720df63"
+    },
+    {
+      "sourcePath": "src/data/tree-species-matching.ts",
+      "outputPath": "tools/species-guide/vendor/omahatreecare/src/data/tree-species-matching.ts",
+      "sourceSha256": "bb0eeca6b296acd01014b00ce3c920cf6029db81f57fa5e15318b0cb0e802508",
+      "outputSha256": "eee80a33a120e7eaea9b1db2db6cec5ccf01975913f13cb20a7e53f639989489"
+    },
+    {
+      "sourcePath": "src/data/tree-species-validation.ts",
+      "outputPath": "tools/species-guide/vendor/omahatreecare/src/data/tree-species-validation.ts",
+      "sourceSha256": "d605e7f15e866b719be1350e398062a486edd9a86989f2894c28dbc8ee2088f7",
+      "outputSha256": "651881b11cb3762b24134a5aa577033401ec505ff07f84c25b8958acffce2e9e"
+    },
+    {
+      "sourcePath": "src/data/species-guide-questions.ts",
+      "outputPath": "tools/species-guide/vendor/omahatreecare/src/data/species-guide-questions.ts",
+      "sourceSha256": "329eadb013dc88dd57aa8558d68fd8170b71046ea2c55b3c68bb6df7a73630d4",
+      "outputSha256": "8e60d1e6c163f05fe6076565c72bbedc493a5a7783542a8c7db0486cc93fd99d"
+    },
+    {
+      "sourcePath": "src/data/utility-guidance.ts",
+      "outputPath": "tools/species-guide/vendor/omahatreecare/src/data/utility-guidance.ts",
+      "sourceSha256": "083024a0aca02dd2aca06f7252513913fe672cebf95e9231a9383ba0b6457246",
+      "outputSha256": "083024a0aca02dd2aca06f7252513913fe672cebf95e9231a9383ba0b6457246"
+    },
+    {
+      "sourcePath": "src/components/tools/SpeciesTraitVisual.tsx",
+      "outputPath": "tools/species-guide/vendor/omahatreecare/src/components/tools/SpeciesTraitVisual.tsx",
+      "sourceSha256": "0012bdfdb31c4e374826b865f857083f02228a67f15e8107a152ba894ac92bb8",
+      "outputSha256": "0012bdfdb31c4e374826b865f857083f02228a67f15e8107a152ba894ac92bb8"
+    },
+    {
+      "sourcePath": "src/data/tree-species.test.ts",
+      "outputPath": "tools/species-guide/vendor/omahatreecare/src/data/tree-species.test.ts",
+      "sourceSha256": "35abc8dc3b086e823b07b5500baeeb8febb04a69ff39620546bf21b0d1d5e69c",
+      "outputSha256": "6022ecb8926d0b9a89a89e20a75c2161b6e6cfcdf7678c9619dcfcb958b9cc03"
+    },
+    {
+      "sourcePath": "src/data/species-guide-questions.test.ts",
+      "outputPath": "tools/species-guide/vendor/omahatreecare/src/data/species-guide-questions.test.ts",
+      "sourceSha256": "0acb2109975d313440186820a62313a55666a72a802e6dc2c73a21579b8d65db",
+      "outputSha256": "2c8fd69721943f9b50b46dc5d53651606800b4298b99ffdbb9d119844cc1468c"
+    }
+  ]
+}

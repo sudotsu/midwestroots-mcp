@@ -1,0 +1,31 @@
+{
+  "name": "midwestroots-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/server/main.ts",
+    "start": "node dist/src/server/main.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:canonical-species": "vitest run tools/species-guide/vendor/omahatreecare/src/data",
+    "test:foundation": "vitest run tests/case tests/safety tests/species tests/server",
+    "vendor:species": "node scripts/vendor-species.mjs",
+    "verify:vendor": "node scripts/verify-species-vendor.mjs",
+    "check": "npm run typecheck && npm run verify:vendor && npm test && npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.2",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3",
+    "vitest": "5.0.0"
+  }
+}
