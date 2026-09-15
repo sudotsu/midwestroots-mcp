@@ -6,10 +6,12 @@ import {
 } from "../../tools/species-guide/vendor/omahatreecare/src/data/utility-guidance.js";
 import { EvidenceIdSchema, TreeCaseSchema, TreeIdSchema, type TreeCase } from "../case/schema.js";
 
+const ActiveElectricalSignSchema = z.enum(["downed-wire", "arcing", "fire", "active-electrical-emergency"]);
+
 export const SharedSafetyInputSchema = z.strictObject({
   treeId: TreeIdSchema,
   utilityStatus: z.enum(["clear", "nearby-or-uncertain", "apparent-contact", "active-electrical-signs"]),
-  activeElectricalSigns: z.array(z.enum(["downed-wire", "arcing", "fire", "active-electrical-emergency"])).max(4).default([]),
+  activeElectricalSigns: z.array(ActiveElectricalSignSchema).max(4).optional(),
   evidenceIds: z.array(EvidenceIdSchema).min(1),
 });
 
@@ -36,6 +38,13 @@ const firstActionByStatus = {
   "active-electrical-signs": "utility-emergency-first",
 } as const;
 
+const utilityPriority: Record<UtilityStatus, number> = {
+  clear: 0,
+  "nearby-or-uncertain": 1,
+  "apparent-contact": 2,
+  "active-electrical-signs": 3,
+};
+
 export function routeSharedSafety(
   input: z.input<typeof SharedSafetyInputSchema>,
   treeCaseInput: TreeCase,
@@ -43,32 +52,74 @@ export function routeSharedSafety(
   const parsed = SharedSafetyInputSchema.parse(input);
   const treeCase = TreeCaseSchema.parse(treeCaseInput);
   if (treeCase.activeTreeId !== parsed.treeId) throw new Error("Safety input must reference the active tree");
-  const evidenceById = new Map(
-    treeCase.trees.find(({ id }) => id === parsed.treeId)?.evidence.map((item) => [item.id, item]),
+
+  const tree = treeCase.trees.find(({ id }) => id === parsed.treeId);
+  if (!tree) throw new Error("Safety input references an unknown tree");
+
+  const supersededEvidenceIds = new Set(
+    tree.evidence.flatMap((item) => item.supersedesEvidenceId ? [item.supersedesEvidenceId] : []),
   );
-  const selectedEvidence = parsed.evidenceIds.map((id) => evidenceById.get(id));
+  const currentEvidence = tree.evidence.filter((item) => !supersededEvidenceIds.has(item.id));
+  const currentEvidenceById = new Map(currentEvidence.map((item) => [item.id, item]));
+
+  const selectedEvidence = parsed.evidenceIds.map((id) => currentEvidenceById.get(id));
   if (selectedEvidence.some((item) => !item)) {
-    throw new Error("Safety input contains evidence from an unknown or different tree");
+    throw new Error("Safety input contains unknown, different-tree, or superseded evidence");
+  }
+  if (selectedEvidence.some((item) => !item?.field.startsWith("safety."))) {
+    throw new Error("Safety routing accepts only safety evidence IDs");
+  }
+
+  const currentUtilityEvidence = currentEvidence.filter(
+    (item) => item.field === "safety.utilityStatus" && item.value !== null,
+  );
+  if (currentUtilityEvidence.length === 0) {
+    throw new Error("Safety input lacks current utility-status evidence");
+  }
+  const strongestUtilityEvidence = currentUtilityEvidence.reduce((strongest, item) => (
+    utilityPriority[item.value as UtilityStatus] > utilityPriority[strongest.value as UtilityStatus] ? item : strongest
+  ));
+  const currentUtilityStatus = strongestUtilityEvidence.value as UtilityStatus;
+  if (parsed.utilityStatus !== currentUtilityStatus) {
+    throw new Error(`Safety utility status is stale or conflicts with current evidence (${currentUtilityStatus})`);
   }
   if (!selectedEvidence.some((item) => (
-    item?.field === "safety.utilityStatus" && item.value === parsed.utilityStatus
-  ))) throw new Error("Safety input lacks evidence for its utility status");
-  for (const sign of parsed.activeElectricalSigns) {
-    if (!selectedEvidence.some((item) => item?.field === "safety.activeElectricalSign" && item.value === sign)) {
-      throw new Error(`Safety input lacks evidence for ${sign}`);
+    item?.field === "safety.utilityStatus" && item.value === currentUtilityStatus
+  ))) {
+    throw new Error("Safety input must select current evidence for its utility status");
+  }
+
+  const currentElectricalEvidence = currentEvidence.filter(
+    (item) => item.field === "safety.activeElectricalSign" && item.value !== null,
+  );
+  const currentElectricalSigns = [...new Set(
+    currentElectricalEvidence.map((item) => ActiveElectricalSignSchema.parse(item.value)),
+  )].sort();
+  if (parsed.activeElectricalSigns !== undefined) {
+    const suppliedSigns = [...new Set(parsed.activeElectricalSigns)].sort();
+    if (JSON.stringify(suppliedSigns) !== JSON.stringify(currentElectricalSigns)) {
+      throw new Error("Supplied active electrical signs do not match current Tree Case evidence");
     }
   }
-  const status: UtilityStatus = parsed.activeElectricalSigns.length > 0
+
+  const status: UtilityStatus = currentElectricalSigns.length > 0
     ? "active-electrical-signs"
-    : parsed.utilityStatus;
+    : currentUtilityStatus;
   const guidance = utilityGuidance[status];
+  const routeEvidenceIds = [...new Set([
+    ...currentUtilityEvidence
+      .filter((item) => item.value === currentUtilityStatus)
+      .map((item) => item.id),
+    ...(status === "active-electrical-signs" ? currentElectricalEvidence.map((item) => item.id) : []),
+  ])];
+
   return SharedSafetyRouteSchema.parse({
     treeId: parsed.treeId,
     utilityStatus: status,
     firstAction: firstActionByStatus[status],
     heading: guidance.heading,
     explanation: guidance.explanation,
-    evidenceIds: parsed.evidenceIds,
+    evidenceIds: routeEvidenceIds,
     interruptsCurrentCapability: status !== "clear",
     affectsSpeciesRanking: false,
   });
