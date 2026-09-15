@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
 import { applyVercelEnvironment } from "../../src/server/vercel-environment.js";
@@ -60,5 +61,24 @@ describe("Vercel environment adapter", () => {
 
     expect(environment.HOST).toBe("0.0.0.0");
     expect(environment.MCP_ALLOWED_HOSTS).toBeUndefined();
+  });
+});
+
+describe("Vercel packaging contract", () => {
+  it("builds the MCP App resource before Vercel packages the server", async () => {
+    const packageJson = JSON.parse(await readFile("package.json", "utf8")) as {
+      scripts?: Record<string, string>;
+    };
+    expect(packageJson.scripts?.["vercel-build"]).toBe("npm run build:ui");
+  });
+
+  it("traces the runtime-read Species assets into the Vercel function", async () => {
+    const config = JSON.parse(await readFile("vercel.json", "utf8")) as {
+      functions?: Record<string, { includeFiles?: string }>;
+    };
+    const includeFiles = config.functions?.["server.ts"]?.includeFiles ?? "";
+    expect(includeFiles).toContain("dist/ui/species-guide-v1.html");
+    expect(includeFiles).toContain("tools/species-guide/**");
+    expect(includeFiles).toContain("scripts/vendor-species.mjs");
   });
 });
