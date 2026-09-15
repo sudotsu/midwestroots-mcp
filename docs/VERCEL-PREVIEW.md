@@ -12,7 +12,7 @@ The Vercel-specific layer does three things:
 
 1. `server.ts` applies the Vercel environment adapter and starts the existing HTTP service in captured-listener mode. Vercel intercepts `server.listen()` rather than opening a normal local TCP listener, so this mode treats a successful `listen()` return as startup completion; ordinary local startup still waits for the callback and validates the bound address.
 2. `src/server/vercel-environment.ts` adds Vercel's generated deployment, branch, and production hostnames to the strict Host-header allowlist. Explicit `MCP_ALLOWED_HOSTS` entries are preserved for custom domains.
-3. `vercel.json` traces the generated MCP App HTML, Species vendor snapshot/metadata, and vendor importer into the function because those files are read at runtime. `vercel-build` generates the self-contained Species UI before packaging.
+3. `vercel-build` generates the self-contained Species UI before Vercel traces and packages the native server. `vercel.json` intentionally contains no `functions` override: Vercel only accepts those patterns for recognized function directories such as `api/`, while this project uses a root native Node server. Runtime-read Species paths remain literal in source so the native-server tracer can discover them.
 
 No database, authentication system, persistence layer, image proxy, alternative MCP transport, or provider-specific domain logic is introduced.
 
