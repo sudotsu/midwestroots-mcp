@@ -1,7 +1,7 @@
 # Species Matching Capability
 
 **Implementation order:** 1 of 5  
-**Status:** Approved Phase 1 specification; canonical foundation prerequisite pending
+**Status:** Approved Phase 1 specification; canonical PR #113 foundation imported by the MCP foundation
 
 **Canonical source:** `sudotsu/omahatreecare`
 
@@ -53,6 +53,17 @@ The deterministic matcher:
 Those behaviors are part of the product contract.
 
 Domain logic, source-backed content, utility policy, trait vocabulary, and Species illustrations remain canonical in `sudotsu/omahatreecare`. This repository consumes a reviewed snapshot through reproducible, versioned vendoring. The vendor record must identify the upstream commit and paths, and the import/verification process must detect drift rather than rely on informal copying.
+
+### Reproducible vendor snapshot
+
+Files under `vendor/omahatreecare` are generated artifacts and must not be edited here. Reproduce and verify the snapshot from a local clone containing the recorded commit:
+
+```sh
+npm run vendor:species -- --source /path/to/omahatreecare
+npm run verify:vendor
+```
+
+The importer reads immutable Git objects recorded in `VENDOR-SOURCE.json`, rather than the source checkout's working tree. It performs one recorded mechanical transform: extensionless relative TypeScript imports receive a `.js` suffix so compiled output runs under Node ESM. `SOURCE-MANIFEST.json` records separate source and output hashes, importer hash/version, the transform, and dataset/review metadata. Behavioral or content changes begin upstream and arrive through a reviewed vendor update.
 
 ## Model boundary
 

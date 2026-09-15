@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "sourceRepository": "https://github.com/sudotsu/omahatreecare.git",
+  "sourceCommit": "473e0407e42f60d6ecb4717de3f2649300d3be08",
+  "importedOn": "2026-09-14",
+  "sourcePaths": [
+    "src/data/tree-species.ts",
+    "src/data/tree-species-matching.ts",
+    "src/data/tree-species-validation.ts",
+    "src/data/species-guide-questions.ts",
+    "src/data/utility-guidance.ts",
+    "src/components/tools/SpeciesTraitVisual.tsx",
+    "src/data/tree-species.test.ts",
+    "src/data/species-guide-questions.test.ts"
+  ]
+}

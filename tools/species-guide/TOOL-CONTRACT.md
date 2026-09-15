@@ -1,6 +1,6 @@
 # Species Capability — Tool Contract
 
-**Status:** Approved Phase 1 contract; canonical foundation prerequisite pending
+**Status:** Approved Phase 1 contract; canonical PR #113 foundation imported by the MCP foundation
 
 **Applies to:** First MCP implementation slice
 
