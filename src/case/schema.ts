@@ -124,8 +124,12 @@ export const EvidenceSchema = z.strictObject({
   if (evidence.value !== null && evidence.state === "unknown") {
     context.addIssue({ code: "custom", path: ["value"], message: "unknown evidence must have a null value" });
   }
-  if (evidence.origin === "image_observed" && !evidence.sourceReference) {
-    context.addIssue({ code: "custom", path: ["sourceReference"], message: "image evidence requires its original source reference" });
+  if (evidence.origin === "image_observed" && evidence.sourceReference?.kind !== "image") {
+    context.addIssue({
+      code: "custom",
+      path: ["sourceReference"],
+      message: "image evidence requires an image source reference",
+    });
   }
 });
 
@@ -189,6 +193,7 @@ export const TreeCaseSchema = z.strictObject({
     context.addIssue({ code: "custom", path: ["trees"], message: "evidence IDs must be unique across the case" });
   }
 
+  const supersededById = new Map<string, string>();
   treeCase.trees.forEach((tree, treeIndex) => {
     tree.evidence.forEach((item, evidenceIndex) => {
       if (item.treeId !== tree.id) {
@@ -202,6 +207,16 @@ export const TreeCaseSchema = z.strictObject({
             path: ["trees", treeIndex, "evidence", evidenceIndex, "supersedesEvidenceId"],
             message: "a revision must supersede older evidence for the same field and tree",
           });
+        }
+        const existingSuperseder = supersededById.get(item.supersedesEvidenceId);
+        if (existingSuperseder && existingSuperseder !== item.id) {
+          context.addIssue({
+            code: "custom",
+            path: ["trees", treeIndex, "evidence", evidenceIndex, "supersedesEvidenceId"],
+            message: `evidence ${item.supersedesEvidenceId} is already superseded by ${existingSuperseder}`,
+          });
+        } else {
+          supersededById.set(item.supersedesEvidenceId, item.id);
         }
       } else if (item.revision !== 1) {
         context.addIssue({
