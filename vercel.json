@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "server.ts": {
+      "includeFiles": "{dist/ui/species-guide-v1.html,tools/species-guide/**,scripts/vendor-species.mjs}"
+    }
+  }
+}
