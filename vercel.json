@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "outputDirectory": "dist",
   "functions": {
     "api/*.ts": {
       "includeFiles": "{dist/ui/species-guide-v1.html,tools/species-guide/**,scripts/vendor-species.mjs}"
