@@ -79,10 +79,12 @@ describe("Vercel packaging contract", () => {
     expect(packageJson.scripts?.["vercel-build"]).toBe("npm run build:ui");
   });
 
-  it("packages runtime-read Species assets through a valid api function glob", async () => {
+  it("publishes dist and packages runtime-read Species assets through a valid api function glob", async () => {
     const config = JSON.parse(await readFile("vercel.json", "utf8")) as {
+      outputDirectory?: string;
       functions?: Record<string, { includeFiles?: string }>;
     };
+    expect(config.outputDirectory).toBe("dist");
     const includeFiles = config.functions?.["api/*.ts"]?.includeFiles ?? "";
     expect(includeFiles).toContain("dist/ui/species-guide-v1.html");
     expect(includeFiles).toContain("tools/species-guide/**");
