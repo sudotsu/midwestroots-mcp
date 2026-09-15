@@ -89,7 +89,7 @@ describe("Tree Case evidence contract", () => {
       sourceTurnId: "turn-2",
       recordedAt,
     });
-    expect(corrected.trees[0]?.evidence).toHaveLength(4);
+    expect(corrected.trees[0]?.evidence).toHaveLength(3);
     expect(corrected.trees[0]?.evidence.at(-1)).toMatchObject({
       origin: "user_stated",
       state: "confirmed-by-user",
@@ -98,6 +98,36 @@ describe("Tree Case evidence contract", () => {
       sourceReference: { kind: "conversation-turn", id: "turn-2" },
     });
     expect(corrected.results[0]?.stale).toBe(true);
+  });
+
+  it("rejects two revisions branching from the same superseded evidence", () => {
+    const corrected = correctEvidence(treeCaseFixture(), "evidence-1", {
+      id: "evidence-2",
+      value: "alternate",
+      sourceTurnId: "turn-2",
+      recordedAt,
+    });
+    expect(() => correctEvidence(corrected, "evidence-1", {
+      id: "evidence-3",
+      value: "opposite",
+      sourceTurnId: "turn-3",
+      recordedAt,
+    })).toThrow(/already superseded/);
+
+    const branched = structuredClone(corrected);
+    branched.trees[0]!.evidence.push({
+      id: "evidence-3",
+      treeId: "tree-1",
+      field: "species.leafArrangement",
+      value: "opposite",
+      origin: "user_stated",
+      state: "confirmed-by-user",
+      revision: 2,
+      supersedesEvidenceId: "evidence-1",
+      sourceReference: { kind: "conversation-turn", id: "turn-3" },
+      recordedAt,
+    });
+    expect(() => TreeCaseSchema.parse(branched)).toThrow(/already superseded/);
   });
 
   it("marks dependent results stale when new relevant evidence arrives", () => {
@@ -115,18 +145,51 @@ describe("Tree Case evidence contract", () => {
     expect(next.results[0]?.stale).toBe(true);
   });
 
-  it("rejects malformed evidence, unknown keys, and field/value mismatches", () => {
+  it("rejects unknown evidence keys independently", () => {
+    const valid = {
+      id: "evidence-new",
+      treeId: "tree-1",
+      field: "species.leafType",
+      value: "simple",
+      origin: "image_observed",
+      state: "provisional",
+      revision: 1,
+      sourceReference: { kind: "image", id: "image-2" },
+      recordedAt,
+    } as const;
+    expect(() => EvidenceSchema.parse({ ...valid, unexpected: true })).toThrow();
+  });
+
+  it("rejects field/value mismatches independently", () => {
     expect(() => EvidenceSchema.parse({
-      id: "evidence-1",
+      id: "evidence-new",
       treeId: "tree-1",
       field: "species.leafType",
       value: "opposite",
+      origin: "user_stated",
+      state: "observed",
+      revision: 1,
+      sourceReference: { kind: "conversation-turn", id: "turn-2" },
+      recordedAt,
+    })).toThrow(/invalid for species.leafType/);
+  });
+
+  it("requires image-origin evidence to reference an image specifically", () => {
+    const base = {
+      id: "evidence-new",
+      treeId: "tree-1",
+      field: "species.leafType",
+      value: "simple",
       origin: "image_observed",
       state: "provisional",
       revision: 1,
       recordedAt,
-      unexpected: true,
-    })).toThrow();
+    } as const;
+    expect(() => EvidenceSchema.parse(base)).toThrow(/image source reference/);
+    expect(() => EvidenceSchema.parse({
+      ...base,
+      sourceReference: { kind: "conversation-turn", id: "turn-2" },
+    })).toThrow(/image source reference/);
   });
 
   it("rejects evidence and results that cross tree boundaries", () => {
