@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it } from "vitest";
 
+import { createHttpService } from "../../src/server/http.js";
 import { applyVercelEnvironment } from "../../src/server/vercel-environment.js";
 
 describe("Vercel environment adapter", () => {
@@ -64,12 +65,49 @@ describe("Vercel environment adapter", () => {
   });
 });
 
+describe("Vercel captured-listener startup", () => {
+  it("resolves without a listen callback or TCP address", async () => {
+    const service = await createHttpService({
+      environment: "test",
+      host: "0.0.0.0",
+      port: 3000,
+      allowedHosts: [],
+      allowedOrigins: [],
+      maxRequestBytes: 1024 * 1024,
+      shutdownTimeoutMs: 1_000,
+    });
+    const originalListen = service.server.listen;
+    let listenCalled = false;
+    service.server.listen = (() => {
+      listenCalled = true;
+      return service.server;
+    }) as typeof service.server.listen;
+
+    try {
+      await expect(service.start({ listenerCaptured: true })).resolves.toEqual({
+        host: "0.0.0.0",
+        port: 3000,
+      });
+      expect(listenCalled).toBe(true);
+      expect(service.server.address()).toBeNull();
+    } finally {
+      service.server.listen = originalListen;
+      await service.close();
+    }
+  });
+});
+
 describe("Vercel packaging contract", () => {
   it("keeps the Vercel server entrypoint inside the TypeScript project", async () => {
     const tsconfig = JSON.parse(await readFile("tsconfig.json", "utf8")) as {
       include?: string[];
     };
     expect(tsconfig.include).toContain("server.ts");
+  });
+
+  it("uses captured-listener startup in the Vercel entrypoint", async () => {
+    const entrypoint = await readFile("server.ts", "utf8");
+    expect(entrypoint).toContain("service.start({ listenerCaptured: true })");
   });
 
   it("builds the MCP App resource before Vercel packages the server", async () => {
