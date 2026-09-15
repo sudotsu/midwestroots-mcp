@@ -11,7 +11,7 @@ import {
   SpeciesToolInputSchema,
 } from "../species/contracts.js";
 import { SpeciesProfileInputSchema } from "../species/schemas.js";
-import { getSpeciesProfile, matchSpecies, matchSpeciesText, renderSpeciesGuide } from "../species/service.js";
+import { getSpeciesProfile, matchSpecies, matchSpeciesText, renderSpeciesGuide, renderSpeciesGuideText } from "../species/service.js";
 
 export const MCP_SERVER_INFO = { name: "midwest-roots", version: "0.2.0" } as const;
 export const SPECIES_GUIDE_RESOURCE_URI = "ui://midwest-roots/species-guide-v1.html";
@@ -30,16 +30,6 @@ function textResult(text: string, structuredContent: Record<string, unknown>, me
     structuredContent,
     ...(meta ? { _meta: meta } : {}),
   };
-}
-
-function renderText(output: ReturnType<typeof renderSpeciesGuide>) {
-  return [
-    matchSpeciesText({ caseReference: output.caseReference, result: output.result }),
-    output.safetyRoute?.interruptsCurrentCapability
-      ? `${output.safetyRoute.heading}: ${output.safetyRoute.explanation}`
-      : null,
-    "Open the interactive field guide to review evidence, compare the next useful clue, or correct an observation.",
-  ].filter(Boolean).join(" ");
 }
 
 /** Creates an independent stateless MCP server for one HTTP request. */
@@ -93,7 +83,7 @@ export function createMcpServer(repositoryRoot = process.cwd()) {
     },
   }, async (input) => {
     const output = renderSpeciesGuide(input);
-    return textResult(renderText(output), output, {
+    return textResult(renderSpeciesGuideText(output), output, {
       activeTreeId: output.caseReference.activeTreeId,
       originalPhotoAvailable: output.platform.originalPhotoAvailable,
     });
@@ -106,6 +96,8 @@ export function createMcpServer(repositoryRoot = process.cwd()) {
     _meta: {
       ui: {
         prefersBorder: false,
+        // Photos are loaded only through ChatGPT's host-authorized
+        // getFileDownloadUrl extension; this widget has no external origins.
         csp: { connectDomains: [], resourceDomains: [] },
       },
     },

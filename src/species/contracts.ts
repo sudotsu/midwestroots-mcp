@@ -233,6 +233,19 @@ export const InvestigationChangeSchema = z.strictObject({
   message: z.string().min(1),
 }).nullable();
 
+export const SpeciesHazardHandoffSchema = z.strictObject({
+  kind: z.literal("visible-failure-target"),
+  firstAction: z.literal("open-hazard-screening"),
+  heading: z.literal("Possible safety concern"),
+  explanation: z.string().min(1),
+  interruptsCurrentCapability: z.literal(true),
+  affectsSpeciesRanking: z.literal(false),
+  basis: z.strictObject({
+    visibleFailureSign: z.literal("yes"),
+    targetWithinReach: z.literal("yes"),
+  }),
+});
+
 export const RenderSpeciesGuideOutputSchema = z.strictObject({
   treeCase: TreeCaseSchema,
   caseReference: TreeCaseReferenceSchema,
@@ -243,6 +256,7 @@ export const RenderSpeciesGuideOutputSchema = z.strictObject({
   nextQuestion: SpeciesQuestionSchema,
   change: InvestigationChangeSchema,
   safetyRoute: SharedSafetyRouteSchema.nullable(),
+  hazardHandoff: SpeciesHazardHandoffSchema.nullable(),
   uiState: z.enum([
     "empty", "initial-clues", "multiple-candidates", "next-clue", "contradiction-recheck",
     "tie", "outside-guide", "strongest-match", "no-match", "completed-record",

@@ -11,7 +11,7 @@ import {
   speciesSourcesById,
   treeDatabase,
 } from "../../tools/species-guide/vendor/omahatreecare/src/data/tree-species.js";
-import { routeSharedSafety, SharedSafetyRouteSchema } from "../safety/utility-routing.js";
+import { deriveSharedSafetyRoute } from "../safety/utility-routing.js";
 import { EvidenceSchema, type Evidence, type TreeCase } from "../case/schema.js";
 import { addEvidence, confirmEvidence, correctEvidence } from "../case/revisions.js";
 import type { z } from "zod";
@@ -178,23 +178,6 @@ function applySpeciesEvidenceAction(
   });
 }
 
-function safetyRouteFromCase(treeCase: TreeCase): z.infer<typeof SharedSafetyRouteSchema> | null {
-  const evidence = currentEvidence(treeCase);
-  const utility = evidence.filter((item) => item.field === "safety.utilityStatus" && item.value !== null);
-  if (utility.length === 0) return null;
-  const electrical = evidence.filter((item) => item.field === "safety.activeElectricalSign" && item.value !== null);
-  const priority = { clear: 0, "nearby-or-uncertain": 1, "apparent-contact": 2, "active-electrical-signs": 3 } as const;
-  const strongest = utility.reduce((left, right) => (
-    priority[right.value as keyof typeof priority] > priority[left.value as keyof typeof priority] ? right : left
-  ));
-  return routeSharedSafety({
-    treeId: treeCase.activeTreeId,
-    utilityStatus: strongest.value as keyof typeof priority,
-    activeElectricalSigns: electrical.map(({ value }) => value) as Array<"downed-wire" | "arcing" | "fire" | "active-electrical-emergency">,
-    evidenceIds: [strongest.id, ...electrical.map(({ id }) => id)],
-  }, treeCase);
-}
-
 function annotationLabel(field: string, value: unknown) {
   const category = field.replace("species.", "") as MatchCategory;
   return typeof value === "string"
@@ -220,6 +203,15 @@ export function renderSpeciesGuide(input: unknown) {
   const request = parseSpeciesMatchInput(parsed.request, parsed.case);
   const treeCase = applySpeciesEvidenceAction(parsed.case, parsed.evidenceAction, request.observations);
   const result = computeCanonicalSpeciesResult(request.observations, request.skippedObservations);
+  const hazardHandoff = result.safetyHandoff ? {
+    kind: "visible-failure-target" as const,
+    firstAction: "open-hazard-screening" as const,
+    heading: "Possible safety concern" as const,
+    explanation: "You reported a visible failure sign and people or property within reach. That combination, not the tree species, is why Hazard screening is recommended. This is not a professional tree-risk assessment.",
+    interruptsCurrentCapability: true as const,
+    affectsSpeciesRanking: false as const,
+    basis: { visibleFailureSign: "yes" as const, targetWithinReach: "yes" as const },
+  } : null;
   const nextQuestion = result.nextObservation
     ? speciesGuideQuestions.find(({ key }) => key === result.nextObservation) ?? null
     : null;
@@ -275,7 +267,8 @@ export function renderSpeciesGuide(input: unknown) {
       options: nextQuestion.options,
     } : null,
     change,
-    safetyRoute: safetyRouteFromCase(treeCase),
+    safetyRoute: deriveSharedSafetyRoute(treeCase),
+    hazardHandoff,
     uiState: deriveUiState(result, request.skippedObservations),
     handoffs: [
       { id: "problem", label: "Something looks wrong with it" },
@@ -303,4 +296,17 @@ export function matchSpeciesText(output: ReturnType<typeof matchSpecies>) {
   if (result.primaryTied) return `${result.candidates.length} trees fit equally: ${result.candidates.map(({ commonName }) => commonName).join(", ")}. No primary candidate was selected.`;
   if (result.primaryCandidate) return `Best current match, not confirmed: ${result.primaryCandidate.commonName} (${result.primaryCandidate.scientificName}).`;
   return `${result.candidates.length} of ${result.startingCount} trees remain in this bounded guide. Next useful observation: ${result.nextObservation ?? "none"}.`;
+}
+
+export function renderSpeciesGuideText(output: ReturnType<typeof renderSpeciesGuide>) {
+  return [
+    matchSpeciesText({ caseReference: output.caseReference, result: output.result }),
+    output.safetyRoute?.interruptsCurrentCapability
+      ? `${output.safetyRoute.heading}: ${output.safetyRoute.explanation}`
+      : null,
+    output.hazardHandoff
+      ? `${output.hazardHandoff.heading}: ${output.hazardHandoff.explanation}`
+      : null,
+    "Open the interactive field guide to review evidence, compare the next useful clue, or correct an observation.",
+  ].filter(Boolean).join(" ");
 }

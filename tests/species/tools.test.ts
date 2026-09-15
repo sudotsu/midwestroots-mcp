@@ -6,7 +6,7 @@ import {
   RenderSpeciesGuideInputSchema,
   RenderSpeciesGuideOutputSchema,
 } from "../../src/species/contracts.js";
-import { getSpeciesProfile, matchSpecies, matchSpeciesText, renderSpeciesGuide } from "../../src/species/service.js";
+import { getSpeciesProfile, matchSpecies, matchSpeciesText, renderSpeciesGuide, renderSpeciesGuideText } from "../../src/species/service.js";
 import { treeCaseFixture } from "../fixtures/tree-case.js";
 
 function toolInput(observations: Record<string, unknown>, skippedObservations: string[] = [], treeCase = treeCaseFixture()) {
@@ -76,6 +76,51 @@ describe("Species public tool services", () => {
     const observations = { leafArrangement: "opposite", leafType: "compound" };
     expect(matchSpecies(toolInput(observations, [], withSafety)).result)
       .toEqual(matchSpecies(toolInput(observations, [], TreeCaseSchema.parse(withoutSafety))).result);
+  });
+
+  it("renders active electrical evidence without utility status as an emergency-first shared route", () => {
+    const treeCase = caseWithoutSafety();
+    treeCase.trees[0]!.evidence.push({
+      id: "electrical-only",
+      treeId: "tree-1",
+      field: "safety.activeElectricalSign",
+      value: "downed-wire",
+      origin: "user_stated",
+      state: "observed",
+      revision: 1,
+      sourceReference: { kind: "conversation-turn", id: "turn-electrical" },
+      recordedAt: "2026-09-14T12:00:00Z",
+    });
+    expect(renderSpeciesGuide(toolInput({ leafArrangement: "opposite" }, [], treeCase)).safetyRoute).toMatchObject({
+      firstAction: "utility-emergency-first",
+      evidenceIds: ["electrical-only"],
+      affectsSpeciesRanking: false,
+    });
+  });
+
+  it("surfaces canonical visible-failure/target handoff separately from utility routing", () => {
+    const treeCase = caseWithoutSafety();
+    const observations = {
+      leafArrangement: "opposite",
+      leafType: "compound",
+      visibleFailureSign: "yes",
+      targetWithinReach: "yes",
+    };
+    const output = renderSpeciesGuide(toolInput(observations, [], treeCase));
+    const baseline = renderSpeciesGuide(toolInput({ leafArrangement: "opposite", leafType: "compound" }, [], treeCase));
+    expect(output.result.safetyHandoff).toBe(true);
+    expect(output.result.candidates).toEqual(baseline.result.candidates);
+    expect(output.safetyRoute).toBeNull();
+    expect(output.hazardHandoff).toMatchObject({
+      kind: "visible-failure-target",
+      firstAction: "open-hazard-screening",
+      interruptsCurrentCapability: true,
+      affectsSpeciesRanking: false,
+      basis: { visibleFailureSign: "yes", targetWithinReach: "yes" },
+    });
+    expect(renderSpeciesGuideText(output)).toContain("Possible safety concern");
+    expect(renderSpeciesGuideText(output)).toContain("not the tree species");
+    expect(renderSpeciesGuideText(output)).not.toContain("electrical");
   });
 
   it("fails closed for unknown profile IDs and propagates source/review metadata", () => {
@@ -222,6 +267,9 @@ describe("Species public tool services", () => {
     });
     expect(changed).toMatchObject({ uiState: "strongest-match", result: { primaryCandidate: { profileId: "true-ash" } } });
     expect(changed.change?.eliminatedProfileIds.length).toBeGreaterThan(0);
+    expect(changed.result.alternatives.map(({ profileId }) => profileId)).toEqual([
+      "honeylocust", "kentucky-coffeetree", "silver-maple",
+    ]);
 
     const notSure = renderSpeciesGuide(toolInput({}, [start.result.nextObservation!], treeCase));
     expect(notSure.skippedObservations).toContain(start.result.nextObservation);

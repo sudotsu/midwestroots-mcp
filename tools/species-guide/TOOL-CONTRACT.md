@@ -69,53 +69,49 @@ The public MCP input carries the complete conversation-carried Tree Case plus a 
 
 ## Output
 
-The public result contains `caseReference` and this canonical `result` object:
+The public result contains `caseReference` and this canonical `result` object. This schema-backed example shows an outside-supported-guide result:
 
+<!-- schema-example:match-species-output:start -->
 ```json
 {
-  "kind": "starting-universe | narrowed | ambiguous | no-match",
-  "startingCount": 0,
-  "validObservationCount": 0,
-  "seasonUnavailable": false,
-  "safetyHandoff": false,
-  "primaryTied": false,
-  "primaryCandidate": null,
-  "candidateOrderMeaning": "evidence-ranked | stable-display-only",
-  "outsideSupportedUniverse": false,
-  "unsupportedObservations": [],
-  "nextObservation": null,
-  "candidates": [
-    {
-      "profileId": "string",
-      "commonName": "string",
-      "scientificName": "string",
-      "taxonScope": "species | genus-group",
-      "score": 0,
-      "matches": [],
-      "contradictions": [],
-      "matchedEvidence": [
-        {
-          "category": "leafArrangement | leafType | leafShape | bark | fruit | overallForm | sizeClass",
-          "observationValue": "string",
-          "observationLabel": "string",
-          "profileValueLabels": ["string"]
-        }
-      ],
-      "conflictingEvidence": []
+  "caseReference": {
+    "caseId": "case-1",
+    "activeTreeId": "tree-1",
+    "expectedRevision": 0
+  },
+  "result": {
+    "kind": "no-match",
+    "startingCount": 10,
+    "validObservationCount": 1,
+    "seasonUnavailable": false,
+    "safetyHandoff": false,
+    "primaryTied": false,
+    "primaryCandidate": null,
+    "candidates": [],
+    "alternatives": [],
+    "candidateOrderMeaning": "stable-display-only",
+    "outsideSupportedUniverse": true,
+    "unsupportedObservations": [
+      {
+        "category": "leafType",
+        "observationValue": "needles-or-scales",
+        "observationLabel": "needles or scales"
+      }
+    ],
+    "nextObservation": null,
+    "identificationStatus": "not-confirmed",
+    "datasetCommit": "473e0407e42f60d6ecb4717de3f2649300d3be08",
+    "dataset": {
+      "scope": "bounded-omaha-area-ten-profile-guide",
+      "profileCount": 10,
+      "contentCheckedOn": "2026-08-02",
+      "nextReviewDue": "2027-02-02",
+      "finalContentReview": "pending"
     }
-  ],
-  "alternatives": [],
-  "identificationStatus": "not-confirmed",
-  "datasetCommit": "473e0407e42f60d6ecb4717de3f2649300d3be08",
-  "dataset": {
-    "scope": "bounded-omaha-area-ten-profile-guide",
-    "profileCount": 10,
-    "contentCheckedOn": "YYYY-MM-DD",
-    "nextReviewDue": "YYYY-MM-DD",
-    "finalContentReview": "pending | completed"
   }
 }
 ```
+<!-- schema-example:match-species-output:end -->
 
 ### Output rules
 
@@ -155,66 +151,136 @@ Unknown IDs must fail closed. Do not fall back to an LLM-generated species profi
 
 ## Output
 
+The optional `importantLocalConcern` field is absent in this canonical Honeylocust example; optional profile fields are omitted rather than serialized as `null`.
+
+<!-- schema-example:species-profile-output:start -->
 ```json
 {
-  "profileId": "string",
-  "commonName": "string",
-  "scientificName": "string",
-  "taxonScope": "species | genus-group",
+  "profileId": "honeylocust",
+  "commonName": "Honeylocust",
+  "scientificName": "Gleditsia triacanthos",
+  "taxonScope": "species",
   "taxonNote": {
-    "text": "string",
-    "sourceIds": ["string"]
+    "text": "This profile is Gleditsia triacanthos; thornless and fruitless landscape varieties may omit wild-type thorns or pods.",
+    "sourceIds": [
+      "nfs-honeylocust"
+    ]
   },
   "omahaRelevance": {
-    "text": "string",
-    "sourceIds": ["string"]
+    "text": "Nebraska Forest Service describes honeylocust as an eastern Great Plains native used extensively in paved urban landscapes and suitable throughout Nebraska.",
+    "sourceIds": [
+      "nfs-honeylocust"
+    ]
   },
   "recognition": [
     {
-      "text": "string",
-      "sourceIds": ["string"]
+      "text": "Fine compound foliage is typical; long bean-like pods may occur on fruiting trees but can be absent on fruitless varieties.",
+      "sourceIds": [
+        "nfs-honeylocust"
+      ]
     }
   ],
   "matureSize": {
-    "text": "string",
-    "sourceIds": ["string"]
+    "text": "Nebraska Forest Service lists a typical mature height of 50–70 feet and spread of 50–60 feet.",
+    "sourceIds": [
+      "nfs-honeylocust"
+    ]
   },
-  "importantLocalConcern": null,
-  "whatToWatchFor": null,
+  "whatToWatchFor": {
+    "text": "Seasonal leaf damage from several insects is often cosmetic according to Nebraska Forest Service; observe the actual extent and change rather than inferring decline from the species.",
+    "sourceIds": [
+      "nfs-honeylocust"
+    ]
+  },
   "maintenanceNote": {
-    "text": "string",
-    "sourceIds": ["string"]
+    "text": "Cultivar and the individual tree's observable condition matter when comparing this profile.",
+    "sourceIds": [
+      "nfs-honeylocust"
+    ]
   },
   "traits": {
-    "leafArrangement": [],
-    "leafType": [],
-    "leafShape": [],
-    "bark": [],
-    "fruit": [],
-    "overallForm": [],
-    "sizeClass": []
+    "leafArrangement": [
+      "alternate"
+    ],
+    "leafType": [
+      "compound"
+    ],
+    "leafShape": [
+      "many-small-leaflets"
+    ],
+    "bark": [
+      "rough-scaly"
+    ],
+    "fruit": [
+      "long-flat-pods",
+      "none-seen"
+    ],
+    "overallForm": [
+      "open-irregular",
+      "broad-spreading"
+    ],
+    "sizeClass": [
+      "40-to-70",
+      "over-70"
+    ]
   },
   "traitSourceIds": {
-    "leafArrangement": [],
-    "leafType": [],
-    "leafShape": [],
-    "bark": [],
-    "fruit": [],
-    "overallForm": [],
-    "sizeClass": []
+    "leafArrangement": [
+      "nfs-honeylocust"
+    ],
+    "leafType": [
+      "nfs-honeylocust"
+    ],
+    "leafShape": [
+      "nfs-honeylocust"
+    ],
+    "bark": [
+      "nfs-honeylocust"
+    ],
+    "fruit": [
+      "nfs-honeylocust"
+    ],
+    "overallForm": [
+      "nfs-honeylocust"
+    ],
+    "sizeClass": [
+      "nfs-honeylocust"
+    ]
   },
-  "sourceIds": ["string"],
-  "sources": [],
+  "sourceIds": [
+    "nfs-honeylocust"
+  ],
+  "sources": [
+    {
+      "id": "nfs-honeylocust",
+      "title": "Honeylocust",
+      "organization": "Nebraska Forest Service",
+      "url": "https://nfs.unl.edu/honeylocust/",
+      "accessedOn": "2026-08-02",
+      "geography": "Nebraska"
+    }
+  ],
   "review": {
-    "finalContentReview": "pending | completed",
-    "sourcesCheckedOn": "YYYY-MM-DD",
-    "nextReviewDue": "YYYY-MM-DD"
+    "reviewerName": "A.J.",
+    "reviewerRole": "Midwest Roots Tree Services Owner/Climber and business/product owner",
+    "independent": false,
+    "isaCertifiedArborist": false,
+    "reviewScope": "Practical Omaha relevance and homeowner usefulness; not independent or credentialed arboricultural review.",
+    "evidenceBoundary": "Practical experience does not replace authoritative sources, identification, diagnosis, or an individual-tree risk assessment.",
+    "finalContentReview": "pending",
+    "sourcesCheckedOn": "2026-08-02",
+    "nextReviewDue": "2027-02-02"
   },
-  "limitations": ["string"]
+  "limitations": [
+    "This bounded profile supports comparison and does not confirm identification.",
+    "It does not diagnose a condition, establish hazard, determine work need, or assess an individual tree.",
+    "Final homeowner-facing content review is still pending."
+  ]
 }
 ```
+<!-- schema-example:species-profile-output:end -->
 
-`importantLocalConcern` and `whatToWatchFor` may be absent because the source profile marks them optional.
+`importantLocalConcern` and `whatToWatchFor` are optional and are omitted when absent in the canonical source profile.
 
 ---
 
@@ -228,13 +294,15 @@ Return the required illustrated Phase 1 Species interface for observation choice
 
 The render request supplies the same strict Tree Case and validated observations as `match_species`. It may also supply the prior observation set so the server can recompute an evidence-change transition. An optional strict `evidenceAction` records one direct widget observation, confirmation, or correction through the shared Tree Case revision functions. The returned Tree Case carries that revision forward: image confirmation retains its original image provenance, correction creates superseding user-stated evidence, active-tree boundaries remain enforced, and dependent results become stale when their evidence changes.
 
-An optional top-level `photos` array may contain one to four current host-authorized ChatGPT file objects with required `download_url` and `file_id` properties and optional `mime_type` and `file_name` properties. Photos provide the UI specimen display and provenance reference only; the server does not classify, store, or proxy them. The request does not accept candidate IDs, candidate order, scores, confidence values, primary result, tie state, or no-match state.
+An optional top-level `photos` array may contain one to four current host-authorized ChatGPT file objects with required `download_url` and `file_id` properties and optional `mime_type` and `file_name` properties. The widget exposes every supplied photo and refreshes the selected file through ChatGPT's documented `window.openai.getFileDownloadUrl({ fileId })` host extension. It does not dereference caller-supplied `download_url` values or declare an arbitrary temporary file hostname in its CSP. Photos provide the UI specimen display and provenance reference only; the server does not classify, store, or proxy them. The request does not accept candidate IDs, candidate order, scores, confidence values, primary result, tie state, or no-match state.
 
 ## Canonical-result rule
 
 Before rendering candidate state, the tool recomputes it from validated observations against the recorded dataset version. Prior observations, when present, are also recomputed and are used only to explain eliminated or returned candidates.
 
 The structured output returns the updated validated `treeCase` plus its current `caseReference`, so the stateless conversation can use the exact evidence revision on the next call or a future capability handoff.
+
+Utility/electrical routing is returned as `safetyRoute`. The canonical visible-failure-sign plus reachable-target condition is returned separately as `hazardHandoff`; it recommends Hazard screening without reclassifying the observation as utility evidence, changing Species ranking, or claiming a professional tree-risk assessment. Interactive and text representations must expose the same applicable handoffs while preserving the Species investigation and Tree Case.
 
 The UI must preserve:
 

@@ -34,6 +34,10 @@ type GuideOutput = {
   nextQuestion: Question | null;
   change: null | { previousCount: number; currentCount: number; eliminatedProfileIds: string[]; returnedProfileIds: string[]; eliminatedCandidates: Array<{ profileId: string; commonName: string }>; returnedCandidates: Array<{ profileId: string; commonName: string }>; message: string };
   safetyRoute: null | { heading: string; explanation: string; firstAction: string; interruptsCurrentCapability: boolean };
+  hazardHandoff: null | {
+    kind: "visible-failure-target"; heading: string; explanation: string; firstAction: "open-hazard-screening";
+    interruptsCurrentCapability: true; affectsSpeciesRanking: false;
+  };
   uiState: string;
   handoffs: Array<{ id: string; label: string }>;
   platform: {
@@ -122,13 +126,34 @@ function CandidatePlate({ candidate, equal }: { candidate: Candidate; equal: boo
   </article>;
 }
 
-function Guide({ output, input, onOutput }: { output: GuideOutput; input: GuideInput; onOutput: (next: GuideOutput, nextInput: GuideInput) => void }) {
+function AlternativePlate({ candidate, busy, onOpenProfile }: {
+  candidate: Candidate;
+  busy: boolean;
+  onOpenProfile: (profileId: string) => void;
+}) {
+  return <article className="alternative">
+    <div><span className="index">PARTIAL MATCH</span><h3>{candidate.commonName}</h3><p className="latin">{candidate.scientificName}</p></div>
+    <div className="alternative-evidence">
+      <p><b>Supports</b> {candidate.matchedEvidence.map(({ observationLabel }) => observationLabel).join("; ") || "No current supporting clue"}</p>
+      {candidate.conflictingEvidence.length > 0 && <p className="conflicts"><b>Conflicts</b> {candidate.conflictingEvidence.map(({ observationLabel, profileValueLabels }) => `${observationLabel}; profile shows ${profileValueLabels.join(" or ")}`).join("; ")}</p>}
+    </div>
+    <button className="profile-link" disabled={busy} type="button" onClick={() => onOpenProfile(candidate.profileId)}>Open source-backed profile</button>
+  </article>;
+}
+
+export function Guide({ output, input, onOutput }: { output: GuideOutput; input: GuideInput; onOutput: (next: GuideOutput, nextInput: GuideInput) => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null);
-  const [photoUrl, setPhotoUrl] = useState<string | null>(input.photos?.[0]?.download_url ?? null);
+  const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(input.photos?.[0]?.file_id ?? null);
+  const [photoUrls, setPhotoUrls] = useState<Record<string, string | null>>({});
+  const [photoLoading, setPhotoLoading] = useState(false);
   const [editingEvidenceId, setEditingEvidenceId] = useState<string | null>(null);
   const candidates = useMemo(() => output.result.candidates, [output]);
+  const alternatives = useMemo(() => output.result.alternatives, [output]);
+  const photos = input.photos ?? [];
+  const selectedPhoto = photos.find(({ file_id }) => file_id === selectedPhotoId) ?? photos[0];
+  const photoUrl = selectedPhoto ? photoUrls[selectedPhoto.file_id] ?? null : null;
   const evidencedObservations = useMemo(() => new Set(output.activeTreeEvidence.map(({ field, value }) => `${field.replace("species.", "")}:${value ?? ""}`)), [output]);
   const editingEvidence = output.activeTreeEvidence.find(({ evidenceId }) => evidenceId === editingEvidenceId);
   const editingQuestion = editingEvidence
@@ -137,22 +162,33 @@ function Guide({ output, input, onOutput }: { output: GuideOutput; input: GuideI
   const activeQuestion = editingQuestion ?? output.nextQuestion;
 
   useEffect(() => {
-    const photo = input.photos?.[0];
-    if (!photo) {
-      setPhotoUrl(null);
+    if (photos.length === 0) setSelectedPhotoId(null);
+    else if (!photos.some(({ file_id }) => file_id === selectedPhotoId)) setSelectedPhotoId(photos[0]!.file_id);
+  }, [input.photos, selectedPhotoId]);
+
+  useEffect(() => {
+    if (!selectedPhoto) return;
+
+    let active = true;
+    setPhotoLoading(true);
+    const getFileDownloadUrl = window.openai?.getFileDownloadUrl;
+    if (!getFileDownloadUrl) {
+      setPhotoUrls((current) => ({ ...current, [selectedPhoto.file_id]: null }));
+      setPhotoLoading(false);
       return;
     }
 
-    let active = true;
-    setPhotoUrl(photo.download_url);
-    const getFileDownloadUrl = window.openai?.getFileDownloadUrl;
-    if (getFileDownloadUrl) {
-      void getFileDownloadUrl({ fileId: photo.file_id })
-        .then(({ downloadUrl }) => { if (active) setPhotoUrl(downloadUrl); })
-        .catch(() => { if (active) setPhotoUrl(photo.download_url); });
-    }
+    void getFileDownloadUrl({ fileId: selectedPhoto.file_id })
+      .then(({ downloadUrl }) => {
+        if (!active) return;
+        setPhotoUrls((current) => ({ ...current, [selectedPhoto.file_id]: downloadUrl }));
+      })
+      .catch(() => {
+        if (active) setPhotoUrls((current) => ({ ...current, [selectedPhoto.file_id]: null }));
+      })
+      .finally(() => { if (active) setPhotoLoading(false); });
     return () => { active = false; };
-  }, [input.photos]);
+  }, [selectedPhoto?.file_id]);
 
   async function updateObservation(
     key: string,
@@ -238,8 +274,18 @@ function Guide({ output, input, onOutput }: { output: GuideOutput; input: GuideI
     } finally { setBusy(false); }
   }
 
-  if (output.safetyRoute?.interruptsCurrentCapability) return <main className="field-shell safety-interrupt">
-    <Header output={output}/><section className="safety"><span className="eyebrow">SAFETY ROUTE · FIRST ACTION</span><h1>{output.safetyRoute.heading}</h1><p>{output.safetyRoute.explanation}</p><p className="case-preserved">Your Species field record is preserved for tree {output.caseReference.activeTreeId}. Resume only when it is appropriate to do so.</p></section>
+  if (output.safetyRoute?.interruptsCurrentCapability || output.hazardHandoff) return <main className="field-shell safety-interrupt">
+    <Header output={output}/><section className="safety">
+      {output.safetyRoute?.interruptsCurrentCapability ? <>
+        <span className="eyebrow">UTILITY SAFETY · FIRST ACTION</span><h1>{output.safetyRoute.heading}</h1><p>{output.safetyRoute.explanation}</p>
+      </> : output.hazardHandoff ? <>
+        <span className="eyebrow">TREE / SITE SAFETY HANDOFF</span><h1>{output.hazardHandoff.heading}</h1><p>{output.hazardHandoff.explanation}</p>
+      </> : null}
+      {output.safetyRoute?.interruptsCurrentCapability && output.hazardHandoff && <div className="secondary-safety"><h2>{output.hazardHandoff.heading}</h2><p>{output.hazardHandoff.explanation}</p></div>}
+      {output.hazardHandoff && <button className="hazard-handoff" type="button" onClick={() => void app.sendMessage({ role: "user", content: [{ type: "text", text: "I'm worried it might be unsafe" }] }).catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "The Hazard handoff could not be sent."))}>Continue to Hazard screening</button>}
+      {error && <p className="error" role="alert">{error}</p>}
+      <p className="case-preserved">Your Species investigation and field record are preserved for tree {output.caseReference.activeTreeId}. Resume only when it is appropriate to do so.</p>
+    </section>
   </main>;
 
   return <main className="field-shell" data-state={output.uiState}>
@@ -253,13 +299,18 @@ function Guide({ output, input, onOutput }: { output: GuideOutput; input: GuideI
       <div className="specimen-column">
         <div className="specimen-frame" aria-label="Homeowner tree specimen area">
           {photoUrl ? <>
-            <img className="homeowner-photo" src={photoUrl} alt="Homeowner's current tree" onError={() => setPhotoUrl(null)}/>
-            <p className="photo-source">HOMEOWNER PHOTO · {output.platform.photoCount} AVAILABLE</p>
+            <img className="homeowner-photo" src={photoUrl} alt={selectedPhoto?.file_name ? `Homeowner photo: ${selectedPhoto.file_name}` : `Homeowner tree photo ${photos.findIndex(({ file_id }) => file_id === selectedPhoto?.file_id) + 1}`} onError={() => selectedPhoto && setPhotoUrls((current) => ({ ...current, [selectedPhoto.file_id]: null }))}/>
+            <p className="photo-source">HOMEOWNER PHOTO {photos.findIndex(({ file_id }) => file_id === selectedPhoto?.file_id) + 1} OF {output.platform.photoCount}</p>
           </> : <>
             <div className="tree-mark" aria-hidden="true"><span/><span/><span/></div>
-            <h2>Your tree</h2><p>No host-authorized photo is available in this field guide.</p><small>{output.platform.photoLimitation ?? "The photo could not be displayed. Image-derived evidence remains in the field record."}</small>
+            <h2>Your tree</h2><p>{photoLoading ? "Refreshing the selected homeowner photo…" : "No host-authorized photo is available in this field guide."}</p><small>{output.platform.photoLimitation ?? "The selected photo could not be refreshed through the ChatGPT file API. Image-derived evidence remains in the field record."}</small>
           </>}
         </div>
+        {photos.length > 1 && <div className="photo-selector" role="group" aria-label="Choose a homeowner tree photo">
+          {photos.map((photo, index) => <button key={photo.file_id} type="button" aria-pressed={photo.file_id === selectedPhoto?.file_id} onClick={() => setSelectedPhotoId(photo.file_id)}>
+            <b>Photo {index + 1}</b><span>{photo.file_name ?? `Tree view ${index + 1}`}</span>
+          </button>)}
+        </div>}
         <div className="annotations"><h2>Field record</h2>
           {output.activeTreeEvidence.length === 0 && Object.keys(output.observations).length === 0 && <p className="empty-note">Add a photo in the conversation, or start with what you can see.</p>}
           {output.activeTreeEvidence.map((item) => <div className={`annotation ${item.state}`} key={item.evidenceId}><b>{item.label}</b><span>{originLabel(item.origin, item.state)}</span>
@@ -286,9 +337,13 @@ function Guide({ output, input, onOutput }: { output: GuideOutput; input: GuideI
         {error && <p className="error" role="alert">{error}</p>}
         <section className="candidate-rail" aria-label="Current Species candidates">
           <header><h2>{output.result.primaryTied ? "Equal current matches" : "Candidate field"}</h2><small>{output.result.candidateOrderMeaning === "stable-display-only" ? "Display order does not indicate likelihood." : "Ordered by canonical evidence; scores are not probabilities."}</small></header>
-          {output.change?.eliminatedCandidates.length ? <div className="eliminated" aria-label="Candidates removed by the latest clue"><b>Removed by the latest clue</b>{output.change.eliminatedCandidates.map(({ profileId, commonName }) => <span key={profileId}>{commonName}</span>)}</div> : null}
+          {output.change?.eliminatedCandidates.length ? <details className="eliminated" aria-label="Candidates removed by the latest clue"><summary><b>Removed by the latest clue</b><span>{output.change.eliminatedCandidates.length} candidate{output.change.eliminatedCandidates.length === 1 ? "" : "s"} · review</span></summary><div className="eliminated-list">{output.change.eliminatedCandidates.map(({ profileId, commonName }) => <span key={profileId}>{commonName}</span>)}</div></details> : null}
           {candidates.length > 4 ? <div className="candidate-index">{candidates.map((candidate) => <div className="candidate-row" key={candidate.profileId}><span><b>{candidate.commonName}</b><i>{candidate.scientificName}</i><small>Supports: {candidate.matchedEvidence.map(({ observationLabel }) => observationLabel).join("; ") || "no usable clue yet"}{candidate.conflictingEvidence.length ? ` · Conflicts: ${candidate.conflictingEvidence.map(({ observationLabel }) => observationLabel).join("; ")}` : ""}</small></span><button className="profile-link" disabled={busy} type="button" onClick={() => openProfile(candidate.profileId)}>Open profile</button></div>)}</div> : candidates.length > 0 ? candidates.map((candidate) => <div className="candidate-wrap" key={candidate.profileId}><CandidatePlate candidate={candidate} equal={output.result.primaryTied}/><button className="profile-link" disabled={busy} type="button" onClick={() => openProfile(candidate.profileId)}>Open source-backed profile</button></div>) : <p className="empty-candidates">No candidate selected. The full field record remains available for review.</p>}
         </section>
+        {alternatives.length > 0 && <section className="alternatives" aria-label="Other partial Species matches">
+          <header><div><span className="eyebrow">OTHER PARTIAL MATCHES</span><h2>Other trees with some supporting evidence</h2></div><p>These are lower-ranked canonical alternatives, separate from the current candidate set. Their order reflects evidence, not probability.</p></header>
+          {alternatives.map((candidate) => <AlternativePlate key={candidate.profileId} candidate={candidate} busy={busy} onOpenProfile={openProfile}/>) }
+        </section>}
         {profile && <section className="profile-drawer" aria-live="polite"><span className="eyebrow">SOURCE-BACKED PROFILE</span><h2>{String(profile.commonName)}</h2><p className="latin">{String(profile.scientificName)}</p><p>{String((profile.omahaRelevance as { text?: string } | undefined)?.text ?? "")}</p><p>{String((profile.matureSize as { text?: string } | undefined)?.text ?? "")}</p>
           <p className="source-note">Sources: {Array.isArray(profile.sourceIds) ? profile.sourceIds.join(", ") : "canonical profile sources"}</p>
           <p className="source-note">Content review: {String((profile.review as { finalContentReview?: string } | undefined)?.finalContentReview ?? "not reported")}</p>

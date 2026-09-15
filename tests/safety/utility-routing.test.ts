@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { correctEvidence } from "../../src/case/revisions.js";
-import { routeSharedSafety, SharedSafetyInputSchema } from "../../src/safety/utility-routing.js";
+import { TreeCaseSchema } from "../../src/case/schema.js";
+import { deriveSharedSafetyRoute, routeSharedSafety, SharedSafetyInputSchema } from "../../src/safety/utility-routing.js";
 import { recordedAt, treeCaseFixture } from "../fixtures/tree-case.js";
 
 function withArcingEvidence() {
@@ -18,6 +19,23 @@ function withArcingEvidence() {
     recordedAt,
   });
   return treeCase;
+}
+
+function withOnlyElectricalEvidence(sign: "arcing" | "fire" | "downed-wire") {
+  const treeCase = treeCaseFixture();
+  treeCase.trees[0]!.evidence = treeCase.trees[0]!.evidence.filter(({ field }) => field !== "safety.utilityStatus");
+  treeCase.trees[0]!.evidence.push({
+    id: `electrical-${sign}`,
+    treeId: "tree-1",
+    field: "safety.activeElectricalSign",
+    value: sign,
+    origin: "user_stated",
+    state: "observed",
+    revision: 1,
+    sourceReference: { kind: "conversation-turn", id: `turn-${sign}` },
+    recordedAt,
+  });
+  return TreeCaseSchema.parse(treeCase);
 }
 
 describe("shared utility routing", () => {
@@ -56,6 +74,30 @@ describe("shared utility routing", () => {
       evidenceIds: ["utility-1", "electrical-1"],
       affectsSpeciesRanking: false,
     });
+  });
+
+  it.each(["arcing", "fire", "downed-wire"] as const)(
+    "derives emergency-first routing from current %s evidence without utility-status evidence",
+    (sign) => {
+      expect(deriveSharedSafetyRoute(withOnlyElectricalEvidence(sign))).toMatchObject({
+        utilityStatus: "active-electrical-signs",
+        firstAction: "utility-emergency-first",
+        evidenceIds: [`electrical-${sign}`],
+        interruptsCurrentCapability: true,
+        affectsSpeciesRanking: false,
+      });
+    },
+  );
+
+  it("ignores superseded electrical evidence during automatic route derivation", () => {
+    const original = withOnlyElectricalEvidence("arcing");
+    const corrected = correctEvidence(original, "electrical-arcing", {
+      id: "electrical-cleared",
+      value: null,
+      sourceTurnId: "turn-recheck",
+      recordedAt,
+    });
+    expect(deriveSharedSafetyRoute(corrected)).toBeNull();
   });
 
   it("rejects stale superseded utility evidence instead of allowing a downgrade", () => {

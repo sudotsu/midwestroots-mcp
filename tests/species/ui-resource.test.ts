@@ -15,7 +15,11 @@ describe("Species MCP App resource", () => {
     expect(html).toContain("getFileDownloadUrl");
     expect(html).toContain("downloadUrl");
     expect(html).toContain("HOMEOWNER PHOTO");
-    expect(html).toContain("Homeowner's current tree");
+    expect(html).toContain("Choose a homeowner tree photo");
+    expect(html).toContain("OTHER PARTIAL MATCHES");
+    expect(html).toContain("lower-ranked canonical alternatives");
+    expect(html).toContain("Removed by the latest clue");
+    expect(html).toContain("Continue to Hazard screening");
     expect(html).toContain("Confirm");
     expect(html).toContain("Change this");
     expect(html).toContain("confirmed-by-user");
@@ -23,5 +27,12 @@ describe("Species MCP App resource", () => {
     expect(html).not.toMatch(/Step \d+ of \d+|confidence: ?\d+%|AI sparkles/i);
     expect(html).toContain("#c88a34");
     expect(html).toContain("#17221c");
+  });
+
+  it("uses host-authorized file refreshes instead of dereferencing input download URLs", async () => {
+    const source = await readFile("ui/species-guide/main.tsx", "utf8");
+    expect(source).toContain("getFileDownloadUrl({ fileId: selectedPhoto.file_id })");
+    expect(source).not.toContain("setPhotoUrl(photo.download_url)");
+    expect(source).not.toContain("input.photos?.[0]?.download_url");
   });
 });

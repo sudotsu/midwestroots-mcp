@@ -7,7 +7,6 @@ import { afterEach, describe, expect, it } from "vitest";
 import { treeCaseFixture } from "../fixtures/tree-case.js";
 
 const services: ChildProcessWithoutNullStreams[] = [];
-let nextPort = 40_000 + (process.pid % 10_000);
 
 afterEach(async () => {
   await Promise.all(services.splice(0).map((service) => new Promise<void>((resolve) => {
@@ -18,15 +17,14 @@ afterEach(async () => {
 });
 
 async function startService(options: { allowedOrigins?: string[] } = {}) {
-  const port = nextPort++;
   const service = spawn(process.execPath, ["--import", "tsx", "src/server/main.ts"], {
     cwd: process.cwd(),
     env: {
       ...process.env,
       NODE_ENV: "test",
       HOST: "127.0.0.1",
-      PORT: String(port),
-      MCP_ALLOWED_HOSTS: `127.0.0.1:${port}`,
+      PORT: "0",
+      MCP_ALLOWED_HOSTS: "",
       MCP_ALLOWED_ORIGINS: options.allowedOrigins?.join(",") ?? "",
     },
     stdio: ["pipe", "pipe", "pipe"],
@@ -52,7 +50,18 @@ async function startService(options: { allowedOrigins?: string[] } = {}) {
       }
     });
   });
-  return { service, baseUrl: `http://${address.host}:${address.port}` };
+  const baseUrl = `http://${address.host}:${address.port}`;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    try {
+      const health = await fetch(`${baseUrl}/healthz`);
+      if (health.ok) return { service, baseUrl };
+    } catch (error) {
+      lastError = error;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+  }
+  throw new Error(`server did not accept requests after startup: ${String(lastError)}`);
 }
 
 async function stopService(service: ChildProcessWithoutNullStreams, signal: NodeJS.Signals = "SIGTERM") {
@@ -143,7 +152,10 @@ describe("MCP HTTP foundation", () => {
       mimeType: "text/html;profile=mcp-app",
     });
     const resource = await client.readResource({ uri: "ui://midwest-roots/species-guide-v1.html" });
-    expect(resource.contents[0]).toMatchObject({ mimeType: "text/html;profile=mcp-app" });
+    expect(resource.contents[0]).toMatchObject({
+      mimeType: "text/html;profile=mcp-app",
+      _meta: { ui: { csp: { connectDomains: [], resourceDomains: [] } } },
+    });
     expect("text" in resource.contents[0] && resource.contents[0].text).toContain("MIDWEST ROOTS");
     expect(await client.listResourceTemplates()).toEqual({ resourceTemplates: [] });
     await client.close();
