@@ -65,6 +65,13 @@ describe("Vercel environment adapter", () => {
 });
 
 describe("Vercel packaging contract", () => {
+  it("keeps the Vercel server entrypoint inside the TypeScript project", async () => {
+    const tsconfig = JSON.parse(await readFile("tsconfig.json", "utf8")) as {
+      include?: string[];
+    };
+    expect(tsconfig.include).toContain("server.ts");
+  });
+
   it("builds the MCP App resource before Vercel packages the server", async () => {
     const packageJson = JSON.parse(await readFile("package.json", "utf8")) as {
       scripts?: Record<string, string>;
