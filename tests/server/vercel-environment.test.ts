@@ -117,13 +117,20 @@ describe("Vercel packaging contract", () => {
     expect(packageJson.scripts?.["vercel-build"]).toBe("npm run build:ui");
   });
 
-  it("traces the runtime-read Species assets into the Vercel function", async () => {
+  it("does not configure the root native server as an api-directory function", async () => {
     const config = JSON.parse(await readFile("vercel.json", "utf8")) as {
-      functions?: Record<string, { includeFiles?: string }>;
+      functions?: Record<string, unknown>;
     };
-    const includeFiles = config.functions?.["server.ts"]?.includeFiles ?? "";
-    expect(includeFiles).toContain("dist/ui/species-guide-v1.html");
-    expect(includeFiles).toContain("tools/species-guide/**");
-    expect(includeFiles).toContain("scripts/vendor-species.mjs");
+    expect(config.functions).toBeUndefined();
+  });
+
+  it("keeps runtime-read Species assets on literal paths for native-server tracing", async () => {
+    const vendorIntegrity = await readFile("src/species/vendor-integrity.ts", "utf8");
+    const mcp = await readFile("src/server/mcp.ts", "utf8");
+
+    expect(vendorIntegrity).toContain("tools/species-guide/SOURCE-MANIFEST.json");
+    expect(vendorIntegrity).toContain("tools/species-guide/VENDOR-SOURCE.json");
+    expect(vendorIntegrity).toContain("scripts/vendor-species.mjs");
+    expect(mcp).toContain("dist/ui/species-guide-v1.html");
   });
 });
