@@ -2,7 +2,7 @@
 
 **Status:** Approved Phase 1 contract; canonical PR #113 foundation imported by the MCP foundation
 
-**Applies to:** First MCP implementation slice
+**Applies to:** Species vertical slice
 
 This document defines the data contract the implementation should satisfy. It is intentionally separate from transport/framework syntax so the semantic contract survives Apps SDK or MCP version changes.
 
@@ -33,9 +33,14 @@ This tool does not accept arbitrary free-form species guesses and does not call 
 
 All fields are optional individually. The engine must be able to return a starting-universe result when no usable matching observations are supplied.
 
+The public MCP input carries the complete conversation-carried Tree Case plus a strict request referencing its current active tree and revision:
+
 ```json
 {
-  "observations": {
+  "case": { "schemaVersion": 1, "caseId": "case-1", "revision": 1, "activeTreeId": "tree-1", "trees": [{ "id": "tree-1", "evidence": [] }], "facts": [], "results": [] },
+  "request": {
+    "treeCase": { "caseId": "case-1", "activeTreeId": "tree-1", "expectedRevision": 1 },
+    "observations": {
     "season": "leaf-on | leaf-off-or-unavailable | null",
     "leafArrangement": "opposite | alternate | null",
     "leafType": "simple | compound | needles-or-scales | null",
@@ -46,6 +51,8 @@ All fields are optional individually. The engine must be able to return a starti
     "sizeClass": "under-40 | 40-to-70 | over-70 | null",
     "visibleFailureSign": "yes | no | not-sure | null",
     "targetWithinReach": "yes | no | not-sure | null"
+    },
+    "skippedObservations": []
   }
 }
 ```
@@ -62,24 +69,30 @@ All fields are optional individually. The engine must be able to return a starti
 
 ## Output
 
+The public result contains `caseReference` and this canonical `result` object:
+
 ```json
 {
-  "resultKind": "starting-universe | narrowed | ambiguous | no-match",
+  "kind": "starting-universe | narrowed | ambiguous | no-match",
   "startingCount": 0,
   "validObservationCount": 0,
   "seasonUnavailable": false,
   "safetyHandoff": false,
   "primaryTied": false,
-  "primaryCandidateId": null,
-  "candidateIds": [],
-  "alternativeCandidateIds": [],
+  "primaryCandidate": null,
+  "candidateOrderMeaning": "evidence-ranked | stable-display-only",
+  "outsideSupportedUniverse": false,
+  "unsupportedObservations": [],
   "nextObservation": null,
   "candidates": [
     {
       "profileId": "string",
       "commonName": "string",
       "scientificName": "string",
+      "taxonScope": "species | genus-group",
       "score": 0,
+      "matches": [],
+      "contradictions": [],
       "matchedEvidence": [
         {
           "category": "leafArrangement | leafType | leafShape | bark | fruit | overallForm | sizeClass",
@@ -91,14 +104,12 @@ All fields are optional individually. The engine must be able to return a starti
       "conflictingEvidence": []
     }
   ],
-  "limitations": {
-    "confirmedIdentification": false,
-    "diagnosis": false,
-    "hazardRating": false,
-    "treatmentRecommendation": false
-  },
+  "alternatives": [],
+  "identificationStatus": "not-confirmed",
+  "datasetCommit": "473e0407e42f60d6ecb4717de3f2649300d3be08",
   "dataset": {
-    "scope": "omaha-common-trees",
+    "scope": "bounded-omaha-area-ten-profile-guide",
+    "profileCount": 10,
     "contentCheckedOn": "YYYY-MM-DD",
     "nextReviewDue": "YYYY-MM-DD",
     "finalContentReview": "pending | completed"
@@ -108,13 +119,15 @@ All fields are optional individually. The engine must be able to return a starti
 
 ### Output rules
 
-- `primaryCandidateId` is `null` for starting-universe and no-match.
+- `primaryCandidate` is `null` for starting-universe, ties, contradictions without a clean winner, and no-match.
+- Ordinary no-match is `kind = no-match` with `outsideSupportedUniverse = false`.
+- An outside-guide no-match is `kind = no-match` with `outsideSupportedUniverse = true` and retains `unsupportedObservations`.
 - A tied candidate must not be described as uniquely strongest by downstream UI/copy.
 - `nextObservation` must be selected by deterministic candidate differentiation logic, not a model preference.
 - `nextObservation` must actually separate remaining candidates and must be `null` when no unused observation can usefully separate them.
 - No-match must remain no-match; the adapter cannot promote the highest zero/weak candidate into a result.
 - Usable needles/scales evidence outside the supported dataset must preserve an outside-guide/no-match result.
-- Candidate source or display order must not be interpreted as confidence; a tied result remains tied even if a compatibility field names one candidate first.
+- `candidateOrderMeaning = stable-display-only` must not be interpreted as confidence or likelihood.
 - `safetyHandoff` is routing information only. It must not modify candidate scores.
 - Dataset review metadata must be exposed to the application so stale/pending source status cannot be silently hidden from release checks.
 
@@ -181,22 +194,27 @@ Unknown IDs must fail closed. Do not fall back to an LLM-generated species profi
     "overallForm": [],
     "sizeClass": []
   },
+  "traitSourceIds": {
+    "leafArrangement": [],
+    "leafType": [],
+    "leafShape": [],
+    "bark": [],
+    "fruit": [],
+    "overallForm": [],
+    "sizeClass": []
+  },
   "sourceIds": ["string"],
+  "sources": [],
   "review": {
     "finalContentReview": "pending | completed",
     "sourcesCheckedOn": "YYYY-MM-DD",
     "nextReviewDue": "YYYY-MM-DD"
   },
-  "limitations": {
-    "profileIsIndividualTreeAssessment": false,
-    "speciesImpliesDiagnosis": false,
-    "speciesImpliesHazard": false,
-    "speciesImpliesWorkNeeded": false
-  }
+  "limitations": ["string"]
 }
 ```
 
-`importantLocalConcern` and `whatToWatchFor` may be nullable because the source profile marks them optional.
+`importantLocalConcern` and `whatToWatchFor` may be absent because the source profile marks them optional.
 
 ---
 
@@ -208,11 +226,15 @@ Return the required illustrated Phase 1 Species interface for observation choice
 
 ## Input
 
-The render request supplies validated normalized observations and, where used, an opaque result/dataset reference that the server can verify. It must not accept candidate IDs, candidate order, scores, confidence values, or rankings as authoritative display state.
+The render request supplies the same strict Tree Case and validated observations as `match_species`. It may also supply the prior observation set so the server can recompute an evidence-change transition. An optional strict `evidenceAction` records one direct widget observation, confirmation, or correction through the shared Tree Case revision functions. The returned Tree Case carries that revision forward: image confirmation retains its original image provenance, correction creates superseding user-stated evidence, active-tree boundaries remain enforced, and dependent results become stale when their evidence changes.
+
+An optional top-level `photos` array may contain one to four current host-authorized ChatGPT file objects with required `download_url` and `file_id` properties and optional `mime_type` and `file_name` properties. Photos provide the UI specimen display and provenance reference only; the server does not classify, store, or proxy them. The request does not accept candidate IDs, candidate order, scores, confidence values, primary result, tie state, or no-match state.
 
 ## Canonical-result rule
 
-Before rendering candidate state, the tool must use a server-held canonical deterministic result or recompute it from validated observations against the recorded dataset version. If supplied state disagrees with that result, the canonical result wins or the request fails closed.
+Before rendering candidate state, the tool recomputes it from validated observations against the recorded dataset version. Prior observations, when present, are also recomputed and are used only to explain eliminated or returned candidates.
+
+The structured output returns the updated validated `treeCase` plus its current `caseReference`, so the stateless conversation can use the exact evidence revision on the next call or a future capability handoff.
 
 The UI must preserve:
 
@@ -284,7 +306,7 @@ Draft intent for `render_species_guide`:
 
 > Render the illustrated Midwest Roots Species choices or canonical matcher result. Use validated observations or a server-verifiable result reference. Never accept caller-supplied candidate rankings as authoritative.
 
-Exact platform metadata syntax will be set during implementation against the current Apps SDK/MCP version.
+The implementation uses the standardized `_meta.ui.resourceUri` linkage and `text/html;profile=mcp-app` resource MIME type. It also publishes the current ChatGPT `openai/outputTemplate` compatibility alias and `openai/fileParams` declaration for the optional top-level `photos` field; these point to the same canonical render contract rather than defining separate behavior.
 
 ---
 

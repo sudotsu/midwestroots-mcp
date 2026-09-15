@@ -306,4 +306,4 @@ Phase 1 is complete when:
 
 ## 14. Implementation starting point
 
-The matching, discrimination, contradiction/recheck, tie, no-match, and illustration corrections required for the canonical Species foundation were merged into `sudotsu/omahatreecare` through PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). Begin the Species MCP foundation from that approved canonical state, and record that commit as the source of the first reproducible vendor snapshot.
+The matching, discrimination, contradiction/recheck, tie, no-match, and illustration corrections required for the canonical Species foundation were merged into `sudotsu/omahatreecare` through PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). The MCP foundation and reproducible snapshot of that commit are complete. The current implementation phase is the Species vertical slice built on that approved snapshot.

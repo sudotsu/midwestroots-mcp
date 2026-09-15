@@ -145,7 +145,7 @@ export async function createHttpService(
     try {
       validateMcpRequestHeaders(request, config);
       const body = await readJsonBody(request, config.maxRequestBytes);
-      mcp = createMcpServer();
+      mcp = createMcpServer(repositoryRoot);
       transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined,
         enableJsonResponse: true,

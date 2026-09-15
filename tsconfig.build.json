@@ -7,5 +7,5 @@
     "declaration": true,
     "sourceMap": true
   },
-  "exclude": ["dist", "node_modules", "tests", "vitest.config.ts", "tools/species-guide/vendor/**/*.tsx"]
+  "exclude": ["dist", "node_modules", "tests", "ui", "vitest.config.ts", "tools/species-guide/vendor/**/*.tsx"]
 }

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { speciesGuideQuestions } from "../../tools/species-guide/vendor/omahatreecare/src/data/species-guide-questions.js";
 import { StructuredIdSchema } from "../shared/ids.js";
+import { treeDatabase } from "../../tools/species-guide/vendor/omahatreecare/src/data/tree-species.js";
 
 export const SpeciesMatchCategorySchema = z.enum([
   "leafArrangement",
@@ -85,6 +86,14 @@ export const SpeciesMatchInputSchema = z.strictObject({
   treeCase: TreeCaseReferenceSchema,
   observations: SpeciesObservationsSchema,
   skippedObservations: z.array(SpeciesMatchCategorySchema).max(7).default([]),
+});
+
+const profileIds = treeDatabase.map(({ id }) => id);
+if (profileIds.length === 0) throw new Error("The canonical Species dataset is empty");
+export const SpeciesProfileIdSchema = z.enum(profileIds as [string, ...string[]]);
+
+export const SpeciesProfileInputSchema = z.strictObject({
+  profileId: SpeciesProfileIdSchema,
 });
 
 export type SpeciesObservations = z.infer<typeof SpeciesObservationsSchema>;
