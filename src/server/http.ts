@@ -58,10 +58,20 @@ async function closeServer(server: Server) {
   });
 }
 
+export type HttpStartOptions = {
+  /**
+   * Set only when the hosting platform captures `server.listen()` instead of
+   * opening a local socket. In that mode startup is complete once `listen()`
+   * returns; normal Node startup still waits for the listen callback and
+   * validates the bound TCP address.
+   */
+  listenerCaptured?: boolean;
+};
+
 export type HttpService = {
   server: Server;
   manifest: SpeciesVendorManifest;
-  start(): Promise<{ host: string; port: number }>;
+  start(options?: HttpStartOptions): Promise<{ host: string; port: number }>;
   close(): Promise<void>;
 };
 
@@ -184,7 +194,13 @@ export async function createHttpService(
   return {
     server,
     manifest,
-    async start() {
+    async start(options = {}) {
+      if (options.listenerCaptured) {
+        server.listen(config.port, config.host);
+        ready = true;
+        return { host: config.host, port: config.port };
+      }
+
       await new Promise<void>((resolve, reject) => {
         const onError = (error: Error) => reject(error);
         server.once("error", onError);
