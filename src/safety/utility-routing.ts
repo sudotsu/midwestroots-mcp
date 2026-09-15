@@ -45,6 +45,75 @@ const utilityPriority: Record<UtilityStatus, number> = {
   "active-electrical-signs": 3,
 };
 
+function currentSafetyEvidence(treeCase: TreeCase, treeId: string) {
+  const tree = treeCase.trees.find(({ id }) => id === treeId);
+  if (!tree) throw new Error("Safety input references an unknown tree");
+  const supersededEvidenceIds = new Set(
+    tree.evidence.flatMap((item) => item.supersedesEvidenceId ? [item.supersedesEvidenceId] : []),
+  );
+  return tree.evidence.filter((item) => !supersededEvidenceIds.has(item.id));
+}
+
+function buildSafetyRoute(
+  treeId: string,
+  status: UtilityStatus,
+  evidenceIds: string[],
+) {
+  const guidance = utilityGuidance[status];
+  return SharedSafetyRouteSchema.parse({
+    treeId,
+    utilityStatus: status,
+    firstAction: firstActionByStatus[status],
+    heading: guidance.heading,
+    explanation: guidance.explanation,
+    evidenceIds,
+    interruptsCurrentCapability: status !== "clear",
+    affectsSpeciesRanking: false,
+  });
+}
+
+/**
+ * Derives the strongest shared utility route from current active-tree evidence.
+ * Active electrical signs are sufficient for emergency-first routing even when
+ * no separate utility-status observation was recorded.
+ */
+export function deriveSharedSafetyRoute(treeCaseInput: TreeCase) {
+  const treeCase = TreeCaseSchema.parse(treeCaseInput);
+  const evidence = currentSafetyEvidence(treeCase, treeCase.activeTreeId);
+  const utility = evidence.filter(
+    (item) => item.field === "safety.utilityStatus" && item.value !== null,
+  );
+  const strongestUtility = utility.length > 0 ? utility.reduce((current, item) => (
+    utilityPriority[item.value as UtilityStatus] > utilityPriority[current.value as UtilityStatus]
+      ? item
+      : current
+  )) : null;
+  const electrical = evidence.filter(
+    (item) => item.field === "safety.activeElectricalSign" && item.value !== null,
+  );
+  if (electrical.length > 0) {
+    electrical.forEach((item) => ActiveElectricalSignSchema.parse(item.value));
+    return buildSafetyRoute(
+      treeCase.activeTreeId,
+      "active-electrical-signs",
+      [
+        ...(strongestUtility
+          ? utility.filter((item) => item.value === strongestUtility.value).map(({ id }) => id)
+          : []),
+        ...electrical.map(({ id }) => id),
+      ],
+    );
+  }
+
+  if (!strongestUtility) return null;
+  const status = strongestUtility.value as UtilityStatus;
+  return buildSafetyRoute(
+    treeCase.activeTreeId,
+    status,
+    utility.filter((item) => item.value === status).map(({ id }) => id),
+  );
+}
+
 /**
  * Builds shared utility-safety guidance from current evidence on the active tree.
  * The supplied utility status and optional electrical signs must match that
@@ -60,13 +129,7 @@ export function routeSharedSafety(
   const treeCase = TreeCaseSchema.parse(treeCaseInput);
   if (treeCase.activeTreeId !== parsed.treeId) throw new Error("Safety input must reference the active tree");
 
-  const tree = treeCase.trees.find(({ id }) => id === parsed.treeId);
-  if (!tree) throw new Error("Safety input references an unknown tree");
-
-  const supersededEvidenceIds = new Set(
-    tree.evidence.flatMap((item) => item.supersedesEvidenceId ? [item.supersedesEvidenceId] : []),
-  );
-  const currentEvidence = tree.evidence.filter((item) => !supersededEvidenceIds.has(item.id));
+  const currentEvidence = currentSafetyEvidence(treeCase, parsed.treeId);
   const currentEvidenceById = new Map(currentEvidence.map((item) => [item.id, item]));
 
   const selectedEvidence = parsed.evidenceIds.map((id) => currentEvidenceById.get(id));
@@ -112,7 +175,6 @@ export function routeSharedSafety(
   const status: UtilityStatus = currentElectricalSigns.length > 0
     ? "active-electrical-signs"
     : currentUtilityStatus;
-  const guidance = utilityGuidance[status];
   const routeEvidenceIds = [...new Set([
     ...currentUtilityEvidence
       .filter((item) => item.value === currentUtilityStatus)
@@ -120,14 +182,5 @@ export function routeSharedSafety(
     ...(status === "active-electrical-signs" ? currentElectricalEvidence.map((item) => item.id) : []),
   ])];
 
-  return SharedSafetyRouteSchema.parse({
-    treeId: parsed.treeId,
-    utilityStatus: status,
-    firstAction: firstActionByStatus[status],
-    heading: guidance.heading,
-    explanation: guidance.explanation,
-    evidenceIds: routeEvidenceIds,
-    interruptsCurrentCapability: status !== "clear",
-    affectsSpeciesRanking: false,
-  });
+  return buildSafetyRoute(parsed.treeId, status, routeEvidenceIds);
 }

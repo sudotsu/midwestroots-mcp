@@ -252,7 +252,7 @@ The approved planning baseline covers:
 
 ## 7. Implementation gate
 
-The canonical Species foundation prerequisite was completed in `sudotsu/omahatreecare` PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). The next approved implementation work is the Species MCP foundation and reproducible vendor snapshot from that merged canonical state.
+The canonical Species foundation prerequisite was completed in `sudotsu/omahatreecare` PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). The MCP application foundation and reproducible snapshot of that commit are complete. The current implementation phase is the Species vertical slice.
 
 Once implementation begins, non-documentation repository changes must go through a branch and pull request for review. Passing CI does not authorize merging.
 

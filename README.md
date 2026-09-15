@@ -242,15 +242,15 @@ Examples include MCP eval harnesses, submission validators, schema linting, gene
 
 ## Current priority
 
-The canonical Species foundation corrections are merged in `sudotsu/omahatreecare` PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). The next approved implementation work is the Species MCP foundation and reproducible vendor snapshot from that canonical state.
+The canonical Species foundation corrections are merged in `sudotsu/omahatreecare` PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`). The MCP application foundation and reproducible snapshot of that commit are complete. The current implementation phase is the Species vertical slice.
 
 Production hosting remains undecided. Keep the MCP implementation host-neutral and compare Vercel with Render only after the Species vertical slice has a working `/mcp` handler, using the acceptance criteria in `docs/PLATFORM-DISTRIBUTION.md`.
 
 Species final content review and refreshed local Cost pricing approval remain release gates. Midwest Roots/AJ owns practical and product approval; authoritative factual claims remain source-backed. Publication should ultimately use the Midwest Roots or other owner-controlled verified publisher identity.
 
-## MCP foundation development
+## MCP and Species development
 
-The current implementation is a host-neutral, stateless Node service with Streamable HTTP at `POST /mcp`, liveness at `GET /healthz`, and vendor-aware readiness at `GET /readyz`. This foundation intentionally enumerates no homeowner tools or resources; the three approved Species tools arrive in the next vertical-slice change.
+The current implementation is a host-neutral, stateless Node service with Streamable HTTP at `POST /mcp`, liveness at `GET /healthz`, and vendor-aware readiness at `GET /readyz`. It registers exactly `match_species`, `get_species_profile`, and `render_species_guide`. The render tool links a versioned, self-contained MCP App resource and always recomputes its candidate state through the canonical matcher. Direct widget observations, image-evidence confirmations, and corrections use the shared Tree Case revision functions and return the updated case for conversation-carried continuity.
 
 ```sh
 npm install
@@ -266,4 +266,12 @@ npm run vendor:species -- --source /path/to/omahatreecare
 npm run verify:vendor
 ```
 
-Run the bounded foundation gate with `npm run check`.
+Run the bounded Species and foundation gate with `npm run check`.
+
+### MCP App compatibility
+
+The Species view follows the standardized MCP Apps contract: a versioned `ui://` resource with `text/html;profile=mcp-app`, linked from `render_species_guide` through `_meta.ui.resourceUri`. The resource bundles its application assets and declares no app-owned network domains. The tool also publishes the current ChatGPT compatibility alias `_meta["openai/outputTemplate"]`; it points to the same resource and does not define a second UI contract. Data tools remain decoupled from the view. See the current [MCP server guide](https://developers.openai.com/plugins/build/mcp-server), [ChatGPT UI guide](https://developers.openai.com/plugins/build/chatgpt-ui), and [Apps SDK reference](https://developers.openai.com/plugins/reference).
+
+`render_species_guide` also declares the current ChatGPT file-input metadata for its optional top-level `photos` field. The field uses the documented `download_url`/`file_id` shape, and the widget feature-detects `window.openai.getFileDownloadUrl` to refresh host-authorized URLs. It does not store, proxy, or classify images. Hosts that do not provide a usable photo URL receive the same canonical evidence/result UI with an intentional specimen anchor and image provenance preserved in the field record.
+
+The UI build uses React for accessible stateful interaction, the official MCP Apps bridge for host communication, and esbuild for one self-contained HTML resource. It does not add Next.js, Vite, Tailwind, a browser runtime service, or deployment-provider code.

@@ -170,7 +170,7 @@ Species final content review remains a release gate. Refreshed local pricing app
 
 **Decision:** The canonical Species foundation prerequisite was completed and merged through `sudotsu/omahatreecare` PR #113 (`473e0407e42f60d6ecb4717de3f2649300d3be08`).
 
-The next approved implementation work is the Species MCP foundation and reproducible vendor snapshot from that merged canonical state.
+The MCP application foundation and reproducible snapshot of that merged canonical state are complete. The current implementation phase is the Species vertical slice.
 
 ## D-020 — Shared UI philosophy and feedback
 
