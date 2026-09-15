@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build:ui": "node scripts/build-species-ui.mjs",
+    "vercel-build": "npm run build:ui",
     "build": "npm run build:ui && tsc -p tsconfig.build.json",
     "predev": "npm run build:ui",
     "dev": "tsx watch src/server/main.ts",
