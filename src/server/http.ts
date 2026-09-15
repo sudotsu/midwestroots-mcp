@@ -77,12 +77,37 @@ export async function createHttpService(
   const server = createServer((request, response) => {
     const requestId = randomUUID();
     response.setHeader("x-request-id", requestId);
-    const task = handleRequest(request, response, requestId).finally(() => activeRequests.delete(task));
+    let task: Promise<void>;
+    task = handleRequest(request, response, requestId)
+      .catch((error) => {
+        console.error(JSON.stringify({
+          level: "error",
+          event: "unhandled_request_failure",
+          requestId,
+          message: error instanceof Error ? error.message : "Unknown error",
+        }));
+        if (!response.headersSent) {
+          writeJson(response, 500, {
+            error: { code: "internal_error", message: "Internal server error", requestId },
+          });
+        } else if (!response.writableEnded) {
+          response.destroy();
+        }
+      })
+      .finally(() => activeRequests.delete(task));
     activeRequests.add(task);
   });
 
   async function handleRequest(request: IncomingMessage, response: ServerResponse, requestId: string) {
-    const path = new URL(request.url ?? "/", "http://localhost").pathname;
+    let path: string;
+    try {
+      path = new URL(request.url ?? "/", "http://localhost").pathname;
+    } catch {
+      writeJson(response, 400, {
+        error: { code: "invalid_request_target", message: "Invalid request target", requestId },
+      });
+      return;
+    }
     if (request.method === "GET" && path === "/healthz") {
       writeJson(response, 200, { status: "ok" });
       return;
