@@ -32,8 +32,6 @@ export const EvidenceStateSchema = z.enum([
   "provisional",
   "conflicted",
   "unknown",
-  "skipped",
-  "unavailable",
 ]);
 
 export const EvidenceFieldSchema = z.enum([
@@ -120,11 +118,11 @@ export const EvidenceSchema = z.strictObject({
       message: `value is invalid for ${evidence.field}`,
     });
   }
-  if (evidence.value === null && !["unknown", "skipped", "unavailable"].includes(evidence.state)) {
-    context.addIssue({ code: "custom", path: ["state"], message: "null evidence must be unknown, skipped, or unavailable" });
+  if (evidence.value === null && evidence.state !== "unknown") {
+    context.addIssue({ code: "custom", path: ["state"], message: "null evidence must use the unknown state" });
   }
-  if (evidence.value !== null && ["unknown", "skipped", "unavailable"].includes(evidence.state)) {
-    context.addIssue({ code: "custom", path: ["value"], message: `${evidence.state} evidence must have a null value` });
+  if (evidence.value !== null && evidence.state === "unknown") {
+    context.addIssue({ code: "custom", path: ["value"], message: "unknown evidence must have a null value" });
   }
   if (evidence.origin === "image_observed" && !evidence.sourceReference) {
     context.addIssue({ code: "custom", path: ["sourceReference"], message: "image evidence requires its original source reference" });
@@ -144,11 +142,11 @@ export const FactSchema = z.strictObject({
   if (fact.value !== null && !valueSchema.safeParse(fact.value).success) {
     context.addIssue({ code: "custom", path: ["value"], message: `value is invalid for ${fact.field}` });
   }
-  if (fact.value === null && !["unknown", "skipped", "unavailable"].includes(fact.state)) {
-    context.addIssue({ code: "custom", path: ["state"], message: "null fact must be unknown, skipped, or unavailable" });
+  if (fact.value === null && fact.state !== "unknown") {
+    context.addIssue({ code: "custom", path: ["state"], message: "null fact must use the unknown state" });
   }
-  if (fact.value !== null && ["unknown", "skipped", "unavailable"].includes(fact.state)) {
-    context.addIssue({ code: "custom", path: ["value"], message: `${fact.state} fact must have a null value` });
+  if (fact.value !== null && fact.state === "unknown") {
+    context.addIssue({ code: "custom", path: ["value"], message: "unknown fact must have a null value" });
   }
 });
 

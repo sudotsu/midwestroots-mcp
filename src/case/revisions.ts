@@ -29,7 +29,7 @@ export function confirmEvidence(
   const treeCase = TreeCaseSchema.parse(treeCaseInput);
   const prior = treeCase.trees.flatMap(({ evidence }) => evidence).find(({ id }) => id === evidenceId);
   if (!prior) throw new Error(`Unknown evidence ${evidenceId}`);
-  if (prior.value === null) throw new Error("Unknown, skipped, or unavailable evidence cannot be confirmed");
+  if (prior.value === null) throw new Error("Evidence without a value cannot be confirmed");
   const confirmation = EvidenceSchema.parse({
     ...prior,
     id: nextId,

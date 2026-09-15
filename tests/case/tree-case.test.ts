@@ -1,10 +1,73 @@
 import { describe, expect, it } from "vitest";
 
 import { addEvidence, confirmEvidence, correctEvidence } from "../../src/case/revisions.js";
-import { EvidenceSchema, TreeCaseSchema } from "../../src/case/schema.js";
+import {
+  EvidenceSchema,
+  EvidenceStateSchema,
+  FactSchema,
+  TreeCaseSchema,
+} from "../../src/case/schema.js";
 import { recordedAt, treeCaseFixture } from "../fixtures/tree-case.js";
 
 describe("Tree Case evidence contract", () => {
+  it("uses only the five approved shared evidence states", () => {
+    expect(EvidenceStateSchema.options).toEqual([
+      "confirmed-by-user",
+      "observed",
+      "provisional",
+      "conflicted",
+      "unknown",
+    ]);
+  });
+
+  it("represents missing Tree Case evidence and facts as null unknowns", () => {
+    expect(EvidenceSchema.parse({
+      id: "evidence-unknown",
+      treeId: "tree-1",
+      field: "species.fruit",
+      value: null,
+      origin: "unknown",
+      state: "unknown",
+      revision: 1,
+      recordedAt,
+    })).toMatchObject({ value: null, state: "unknown" });
+
+    expect(FactSchema.parse({
+      id: "fact-unknown",
+      treeId: "tree-1",
+      field: "species.fruit",
+      value: null,
+      state: "unknown",
+      evidenceIds: ["evidence-unknown"],
+      revision: 1,
+    })).toMatchObject({ value: null, state: "unknown" });
+  });
+
+  it("rejects capability-local skipped or unavailable labels as shared states", () => {
+    const evidence = {
+      id: "evidence-unknown",
+      treeId: "tree-1",
+      field: "species.fruit",
+      value: null,
+      origin: "unknown",
+      revision: 1,
+      recordedAt,
+    };
+    expect(() => EvidenceSchema.parse({ ...evidence, state: "skipped" })).toThrow();
+    expect(() => EvidenceSchema.parse({ ...evidence, state: "unavailable" })).toThrow();
+
+    const fact = {
+      id: "fact-unknown",
+      treeId: "tree-1",
+      field: "species.fruit",
+      value: null,
+      evidenceIds: ["evidence-unknown"],
+      revision: 1,
+    };
+    expect(() => FactSchema.parse({ ...fact, state: "skipped" })).toThrow();
+    expect(() => FactSchema.parse({ ...fact, state: "unavailable" })).toThrow();
+  });
+
   it("keeps image origin and reference when a homeowner confirms the observation", () => {
     const confirmed = confirmEvidence(treeCaseFixture(), "evidence-1", "evidence-2", recordedAt);
     const revision = confirmed.trees[0]?.evidence.at(-1);
